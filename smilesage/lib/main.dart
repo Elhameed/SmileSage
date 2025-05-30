@@ -19,7 +19,7 @@ class DentalApp extends StatelessWidget {
 
       theme: ThemeData(
         textTheme: GoogleFonts.lexendTextTheme(Theme.of(context).textTheme),
-        // (optionally customize colors, button themes, etc. here)
+        scaffoldBackgroundColor: Colors.white,
       ),
 
       initialRoute: StartScreen.routeName,

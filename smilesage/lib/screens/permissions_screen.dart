@@ -17,39 +17,43 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const canvasBg = Color(0xFFF7FAFA);
     const primaryGreen = Color(0xFF7CF4A4);
     const headingText = Color(0xFF0A244E);
-    const bodyText = Color(0xFF004060);
+    const bodyText = Color(0xFF000000);
     const subtitleText = Color(0xFF7CA78C);
 
     return Scaffold(
+      backgroundColor: canvasBg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        toolbarHeight: 80,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          "Let's get started",
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // extra space below back arrow
             const SizedBox(height: 16),
+            // Heading text
+            const Text(
+              "Let's get started",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: headingText,
+              ),
+            ),
+            const SizedBox(height: 8),
+
             const Text(
               'We’ll need to ask for a few permissions before\nwe can get started.',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16, color: bodyText),
             ),
 
             const SizedBox(height: 32),
@@ -66,6 +70,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: headingText,
                         ),
                       ),
                       SizedBox(height: 4),
@@ -88,7 +93,11 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
             // Notification preferences heading
             const Text(
               'Notification preferences',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: headingText,
+              ),
             ),
 
             const SizedBox(height: 16),
@@ -105,6 +114,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: headingText,
                         ),
                       ),
                       SizedBox(height: 4),
@@ -137,6 +147,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: headingText,
                         ),
                       ),
                       SizedBox(height: 4),
@@ -157,15 +168,13 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
           ],
         ),
       ),
-
-      // Bottom “Done” button
       bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.all(24),
+        minimum: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: SizedBox(
           height: 56,
           child: ElevatedButton(
             onPressed: () {
-              // TODO: Save preferences and navigate forward
+              // TODO: save prefs & navigate forward
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryGreen,
@@ -175,7 +184,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
             child: const Text(
               'Done',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: headingText,
               ),
