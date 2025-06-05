@@ -5,6 +5,7 @@ import 'screens/welcome_screen.dart';
 import 'screens/sign_up_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/permissions_screen.dart';
+import 'screens/scan_workflow_screen.dart';
 
 void main() => runApp(const DentalApp());
 
@@ -29,6 +30,7 @@ class DentalApp extends StatelessWidget {
         SignUpScreen.routeName: (_) => const SignUpScreen(),
         LoginScreen.routeName: (_) => const LoginScreen(),
         PermissionsScreen.routeName: (_) => const PermissionsScreen(),
+        ScanWorkflowScreen.routeName: (_) => const ScanWorkflowScreen(),
       },
     );
   }
