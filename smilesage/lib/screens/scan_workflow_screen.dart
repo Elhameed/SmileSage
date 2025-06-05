@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'general_scan_screen.dart';
 
 class ScanWorkflowScreen extends StatelessWidget {
   static const routeName = '/scan-workflow';
@@ -56,7 +57,9 @@ class ScanWorkflowScreen extends StatelessWidget {
                     description:
                         'Scan your teeth for cavities, gum disease, and more',
                     descriptionColor: descriptionGold,
-                    onTap: () {},
+                    onTap: () => Navigator.of(
+                      context,
+                    ).pushReplacementNamed(GeneralScanScreen.routeName),
                   ),
                   const SizedBox(height: 16),
                   _ScanOptionTile(

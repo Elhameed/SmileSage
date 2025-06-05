@@ -7,6 +7,7 @@ import 'screens/login_screen.dart';
 import 'screens/permissions_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/scan_workflow_screen.dart';
+import 'screens/general_scan_screen.dart';
 
 void main() => runApp(const DentalApp());
 
@@ -33,6 +34,7 @@ class DentalApp extends StatelessWidget {
         PermissionsScreen.routeName: (_) => const PermissionsScreen(),
         HomeScreen.routeName: (_) => const HomeScreen(),
         ScanWorkflowScreen.routeName: (_) => const ScanWorkflowScreen(),
+        GeneralScanScreen.routeName: (_) => const GeneralScanScreen(),
       },
     );
   }
