@@ -174,7 +174,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
           height: 56,
           child: ElevatedButton(
             onPressed: () {
-              // TODO: save prefs & navigate forward
+              Navigator.of(context).pushNamed('/home');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryGreen,
