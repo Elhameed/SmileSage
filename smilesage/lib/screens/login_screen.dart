@@ -121,6 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   // TODO: login logic
+                  Navigator.of(context).pushNamed('/permissions');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryGreen,

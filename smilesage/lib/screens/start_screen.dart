@@ -14,8 +14,8 @@ class _StartScreenState extends State<StartScreen> {
   @override
   void initState() {
     super.initState();
-    // After 4 seconds, go to WelcomeScreen
-    Timer(const Duration(seconds: 4), () {
+    // After 5 seconds, go to WelcomeScreen
+    Timer(const Duration(seconds: 5), () {
       Navigator.of(context).pushReplacementNamed(WelcomeScreen.routeName);
     });
   }

@@ -20,7 +20,6 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
     // Color constants
     const navyText = Color(0xFF0A244E);
     const subtitleText = Color(0xFF3A3A3A);
-    const descriptionGold = Color(0xFFB58E31);
     const primaryGreen = Color(0xFF7CF4A4);
     const lightGrayFill = Color(0xFFE8F4EC);
 

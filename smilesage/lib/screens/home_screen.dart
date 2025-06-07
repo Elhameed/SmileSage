@@ -29,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
     // Color constants
     const backgroundWhite = Colors.white;
     const darkText = Color(0xFF0A244E);
-    const subtitleText = Color(0xFF3A3A3A);
     const goldText = Color(0xFFB58E31);
     const primaryGreen = Color(0xFF7CF4A4);
     const lightBeige = Color(0xFFF5F0E6);
