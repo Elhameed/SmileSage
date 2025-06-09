@@ -4,7 +4,7 @@
 A mobile application that detects six oral conditions (Calculus, Caries, Gingivitis, Hypodontia, Mouth Ulcer, Tooth Discoloration) and Healthy Teeth using an on-device TensorFlow Lite model. The app also features a user-friendly Flutter front-end guided by Figma designs.
 
 ## Github Repository
-https://github.com/elhameed/smilesage
+[https://github.com/elhameed/smilesage](https://github.com/Elhameed/SmileSage.git)
 
 ## Setup & Installation
 ### 1. <b>1. ML Environment</b>
