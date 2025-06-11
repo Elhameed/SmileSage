@@ -250,7 +250,6 @@ class _ClinicTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryGreen = Color(0xFF7CF4A4);
     const headingText = Color(0xFF0A244E);
     const subtitleText = Color(0xFF7CA78C);
 
