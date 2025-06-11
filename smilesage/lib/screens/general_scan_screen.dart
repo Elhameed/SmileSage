@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'scan_workflow_screen.dart';
 
 class GeneralScanScreen extends StatefulWidget {
   static const routeName = '/general-scan';
@@ -30,7 +31,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.black, size: 24),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Navigator.of(
+            context,
+          ).pushReplacementNamed(ScanWorkflowScreen.routeName),
         ),
         title: const Text(
           'Scan',
@@ -240,7 +243,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        // TODO: navigate to chat/QA flow
+                        Navigator.of(context).pushNamed('/chat');
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: primaryGreen, width: 1.2),

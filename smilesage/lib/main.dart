@@ -8,6 +8,14 @@ import 'screens/permissions_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/scan_workflow_screen.dart';
 import 'screens/general_scan_screen.dart';
+import 'screens/chat_screen.dart';
+import 'screens/reminders_screen.dart';
+import 'screens/clinics_screen.dart';
+import 'screens/learn_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/tips_screen.dart';
+import 'screens/scan_history_screen.dart';
+import 'screens/scan_detail_screen.dart';
 
 void main() => runApp(const DentalApp());
 
@@ -35,6 +43,14 @@ class DentalApp extends StatelessWidget {
         HomeScreen.routeName: (_) => const HomeScreen(),
         ScanWorkflowScreen.routeName: (_) => const ScanWorkflowScreen(),
         GeneralScanScreen.routeName: (_) => const GeneralScanScreen(),
+        ChatScreen.routeName: (_) => const ChatScreen(),
+        RemindersScreen.routeName: (_) => const RemindersScreen(),
+        ClinicsScreen.routeName: (_) => const ClinicsScreen(),
+        LearnScreen.routeName: (_) => const LearnScreen(),
+        ProfileScreen.routeName: (_) => const ProfileScreen(),
+        TipsScreen.routeName: (_) => const TipsScreen(),
+        ScanHistoryScreen.routeName: (_) => const ScanHistoryScreen(),
+        ScanDetailScreen.routeName: (_) => const ScanDetailScreen(),
       },
     );
   }

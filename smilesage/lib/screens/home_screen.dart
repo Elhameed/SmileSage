@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'tips_screen.dart';
 import 'scan_workflow_screen.dart';
+import 'clinics_screen.dart';
+import 'learn_screen.dart';
+import 'profile_screen.dart';
+import 'reminders_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home';
@@ -14,14 +19,22 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   void _onNavItemTapped(int index) {
-    if (index == 2) {
-      // Scan icon tapped → navigate to ScanWorkflowScreen
-      Navigator.of(context).pushNamed(ScanWorkflowScreen.routeName);
-      return; // keep Home selected
+    switch (index) {
+      case 1:
+        Navigator.of(context).pushNamed(TipsScreen.routeName);
+        break;
+      case 2:
+        Navigator.of(context).pushNamed(ScanWorkflowScreen.routeName);
+        break;
+      case 3:
+        Navigator.of(context).pushNamed(ClinicsScreen.routeName);
+        break;
+      case 4:
+        Navigator.of(context).pushNamed(LearnScreen.routeName);
+        break;
+      default:
+        setState(() => _selectedIndex = index);
     }
-    // Otherwise, update state to reflect selected index
-    setState(() => _selectedIndex = index);
-    // TODO: add navigation to other tabs (Tips, Clinics, Learn) as needed
   }
 
   @override
@@ -43,16 +56,22 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Row(
                 children: [
-                  // Avatar
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundImage: AssetImage('assets/images/avatar.png'),
+                  // Tappable Avatar
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pushNamed(ProfileScreen.routeName);
+                    },
+                    child: const CircleAvatar(
+                      radius: 20,
+                      backgroundImage: AssetImage('assets/images/avatar.png'),
+                    ),
                   ),
+
                   const SizedBox(width: 12),
                   // Greeting Text
                   const Expanded(
                     child: Text(
-                      'Hi, Sarah',
+                      'Hi, Lola',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -74,7 +93,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   IconButton(
                     icon: const Icon(Icons.notifications_none, color: darkText),
                     onPressed: () {
-                      // TODO: handle notification action
+                      Navigator.of(
+                        context,
+                      ).pushNamed(RemindersScreen.routeName);
                     },
                   ),
                 ],

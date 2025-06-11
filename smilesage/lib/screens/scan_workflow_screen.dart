@@ -1,17 +1,51 @@
 import 'package:flutter/material.dart';
+import 'home_screen.dart';
+import 'tips_screen.dart';
+import 'clinics_screen.dart';
+import 'learn_screen.dart';
 import 'general_scan_screen.dart';
 
-class ScanWorkflowScreen extends StatelessWidget {
+class ScanWorkflowScreen extends StatefulWidget {
   static const routeName = '/scan-workflow';
-
   const ScanWorkflowScreen({Key? key}) : super(key: key);
 
   @override
+  State<ScanWorkflowScreen> createState() => _ScanWorkflowScreenState();
+}
+
+class _ScanWorkflowScreenState extends State<ScanWorkflowScreen> {
+  // Mark "Scan" as the selected tab
+  int _selectedIndex = 2;
+
+  void _onNavItemTapped(int index) {
+    switch (index) {
+      case 0:
+        Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
+        break;
+      case 1:
+        Navigator.of(context).pushReplacementNamed(TipsScreen.routeName);
+        break;
+      case 2:
+        // Already on Scan
+        break;
+      case 3:
+        Navigator.of(context).pushReplacementNamed(ClinicsScreen.routeName);
+        break;
+      case 4:
+        Navigator.of(context).pushReplacementNamed(LearnScreen.routeName);
+        break;
+    }
+    setState(() => _selectedIndex = index);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const blackText = Color(0xFF0A244E);
+    const blackText = Colors.black;
     const subtitleText = Color(0xFF3A3A3A);
     const descriptionGold = Color(0xFFA1824A);
     const primaryGreen = Color(0xFF00C566);
+    const backgroundWhite = Colors.white;
+    const goldText = Color(0xFFB58E31);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -23,6 +57,7 @@ class ScanWorkflowScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
+
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -33,7 +68,7 @@ class ScanWorkflowScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
                   const Text(
                     'Scan Your Teeth',
                     style: TextStyle(
@@ -51,7 +86,7 @@ class ScanWorkflowScreen extends StatelessWidget {
                       height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
                   _ScanOptionTile(
                     title: 'General Scan',
                     description:
@@ -66,14 +101,16 @@ class ScanWorkflowScreen extends StatelessWidget {
                     title: 'Braces Scan',
                     description: 'Scan your teeth for braces related issues',
                     descriptionColor: descriptionGold,
-                    onTap: () {},
+                    onTap: () {
+                      // TODO: navigate to BracesScanScreen
+                    },
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 120), // Safe spacing between scan and image
-
+            // Ensure map/image sits under options and above nav
+            const SizedBox(height: 48),
             Expanded(
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(
@@ -86,37 +123,42 @@ class ScanWorkflowScreen extends StatelessWidget {
                 ),
               ),
             ),
-
-            const SizedBox(height: 32),
-
-            // Button
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              child: SizedBox(
-                height: 56,
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryGreen,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: const Text(
-                    'Start Scan',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            const SizedBox(height: 36),
           ],
         ),
+      ),
+
+      // Bottom navigation bar
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: backgroundWhite,
+        selectedItemColor: primaryGreen,
+        unselectedItemColor: goldText,
+        currentIndex: _selectedIndex,
+        onTap: _onNavItemTapped,
+        showUnselectedLabels: true,
+        items: const [
+          BottomNavigationBarItem(
+            icon: ImageIcon(AssetImage('assets/images/icon_home.png')),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: ImageIcon(AssetImage('assets/images/icon_tips.png')),
+            label: 'Tips',
+          ),
+          BottomNavigationBarItem(
+            icon: ImageIcon(AssetImage('assets/images/icon_scan.png')),
+            label: 'Scan',
+          ),
+          BottomNavigationBarItem(
+            icon: ImageIcon(AssetImage('assets/images/icon_clinics.png')),
+            label: 'Clinics',
+          ),
+          BottomNavigationBarItem(
+            icon: ImageIcon(AssetImage('assets/images/icon_learn.png')),
+            label: 'Learn',
+          ),
+        ],
       ),
     );
   }
