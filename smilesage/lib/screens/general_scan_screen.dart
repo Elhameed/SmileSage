@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:image/image.dart' as img;
+import 'package:tflite_flutter/tflite_flutter.dart';
 import 'scan_workflow_screen.dart';
 
 class GeneralScanScreen extends StatefulWidget {
@@ -24,6 +26,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
   File? _selectedImage;
   bool _isModelLoaded = false;
   bool _isProcessing = false;
+  Interpreter? _interpreter;
 
   // Prediction results
   String? _predictedCondition;
@@ -50,26 +53,46 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
 
   @override
   void dispose() {
+    _interpreter?.close();
     super.dispose();
   }
 
   // Load the TFLite model
   Future<void> _loadModel() async {
     try {
-      // For now, we'll simulate model loading
-      // You can implement actual TFLite loading here later
-      await Future.delayed(const Duration(milliseconds: 500));
-
+      final interpreter =
+          await Interpreter.fromAsset('models/efficientnetb0_finetuned.tflite');
       setState(() {
+        _interpreter = interpreter;
         _isModelLoaded = true;
       });
       print('Model loaded successfully');
     } catch (e) {
       print('Failed to load model: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to load AI model: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load AI model: $e')),
+      );
     }
+  }
+
+  // Preprocess image for EfficientNetB0
+  Float32List _preprocessImage(File imageFile) {
+    final imageBytes = imageFile.readAsBytesSync();
+    final image = img.decodeImage(imageBytes)!;
+    final resized = img.copyResize(image, width: 224, height: 224);
+
+    // Normalize pixel values to [0,1]
+    final input = Float32List(1 * 224 * 224 * 3);
+    int pixelIndex = 0;
+    for (int y = 0; y < 224; y++) {
+      for (int x = 0; x < 224; x++) {
+        final pixel = resized.getPixel(x, y);
+        input[pixelIndex++] = pixel.r / 255.0;
+        input[pixelIndex++] = pixel.g / 255.0;
+        input[pixelIndex++] = pixel.b / 255.0;
+      }
+    }
+    return input;
   }
 
   // Pick image from gallery
@@ -92,15 +115,15 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
       }
     } catch (e) {
       print('Error picking image: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error selecting image: $e')),
+      );
     }
   }
 
   // Run inference on the selected image
   Future<void> _runInference() async {
-    if (_selectedImage == null || !_isModelLoaded) {
+    if (_selectedImage == null || !_isModelLoaded || _interpreter == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select an image and ensure model is loaded'),
@@ -114,25 +137,31 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
     });
 
     try {
-      // Simulate inference for now - replace with actual TFLite inference later
-      await Future.delayed(const Duration(seconds: 2));
+      // Preprocess image
+      final input = _preprocessImage(_selectedImage!);
 
-      // Mock prediction results for testing
-      final mockPredictions = [
-        {'condition': 'Healthy', 'confidence': 0.89},
-        {'condition': 'Gingivitis', 'confidence': 0.76},
-        {'condition': 'Caries', 'confidence': 0.82},
-        {'condition': 'Calculus', 'confidence': 0.71},
-        {'condition': 'Tooth Discoloration', 'confidence': 0.65},
-      ];
+      // Configure output tensor
+      final output = List.filled(1 * _classLabels.length, 0.0)
+          .reshape([1, _classLabels.length]);
 
-      // Randomly select one for demo
-      final randomResult =
-          mockPredictions[DateTime.now().millisecond % mockPredictions.length];
+      // Run inference
+      _interpreter!.run(input, output);
+
+      // Get prediction results
+      final predictions = output[0];
+      double maxScore = predictions[0];
+      int maxIndex = 0;
+
+      for (int i = 0; i < predictions.length; i++) {
+        if (predictions[i] > maxScore) {
+          maxScore = predictions[i];
+          maxIndex = i;
+        }
+      }
 
       setState(() {
-        _predictedCondition = randomResult['condition'] as String;
-        _confidence = randomResult['confidence'] as double;
+        _predictedCondition = _classLabels[maxIndex];
+        _confidence = maxScore;
         _hasResult = true;
         _isProcessing = false;
       });
@@ -141,9 +170,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
       setState(() {
         _isProcessing = false;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error during prediction: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error during prediction: $e')),
+      );
     }
   }
 
@@ -205,9 +234,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                       height: 40,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _selectedIndex == 0
-                            ? primaryGreen
-                            : Colors.white,
+                        color:
+                            _selectedIndex == 0 ? primaryGreen : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: _selectedIndex == 0
@@ -238,9 +266,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                       height: 40,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _selectedIndex == 1
-                            ? primaryGreen
-                            : Colors.white,
+                        color:
+                            _selectedIndex == 1 ? primaryGreen : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: _selectedIndex == 1
@@ -332,8 +359,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                 child: ElevatedButton(
                   onPressed:
                       _selectedImage != null && _isModelLoaded && !_isProcessing
-                      ? _runInference
-                      : null,
+                          ? _runInference
+                          : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryGreen,
                     shape: const StadiumBorder(),
