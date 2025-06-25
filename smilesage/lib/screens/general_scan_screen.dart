@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:image/image.dart' as img;
 import 'scan_workflow_screen.dart';
+import 'dart:async';
 
 class GeneralScanScreen extends StatefulWidget {
   static const routeName = '/general-scan';
@@ -20,56 +24,25 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
   // Track whether an image/condition has been detected
   bool _hasResult = false;
 
-  // Image and model related variables
+  // Image and API related variables
   File? _selectedImage;
-  bool _isModelLoaded = false;
   bool _isProcessing = false;
 
   // Prediction results
   String? _predictedCondition;
   double? _confidence;
+  Map<String, double>? _allPredictions;
 
-  // Class labels for the dental conditions
-  final List<String> _classLabels = [
-    'Hypodontia',
-    'Ulcers',
-    'Tooth Discoloration',
-    'Healthy',
-    'Calculus',
-    'Caries',
-    'Gingivitis',
-  ];
+  // API endpoint configuration
+  static const String _apiEndpoint =
+      "https://teniola04-dental-api.hf.space/predict";
+  static const Duration _apiTimeout = Duration(seconds: 30);
 
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    _loadModel();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  // Load the TFLite model
-  Future<void> _loadModel() async {
-    try {
-      // For now, we'll simulate model loading
-      // You can implement actual TFLite loading here later
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      setState(() {
-        _isModelLoaded = true;
-      });
-      print('Model loaded successfully');
-    } catch (e) {
-      print('Failed to load model: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to load AI model: $e')));
-    }
   }
 
   // Pick image from gallery
@@ -88,24 +61,50 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
           _hasResult = false; // Reset previous results
           _predictedCondition = null;
           _confidence = null;
+          _allPredictions = null;
         });
       }
     } catch (e) {
       print('Error picking image: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
+      _showSnackBar('Error selecting image: ${e.toString()}');
     }
   }
 
-  // Run inference on the selected image
+  // Preprocess image to match model requirements
+  Future<Uint8List> _preprocessImage(File imageFile) async {
+    try {
+      // Read image bytes
+      final imageBytes = await imageFile.readAsBytes();
+
+      // Decode image
+      final originalImage = img.decodeImage(imageBytes);
+      if (originalImage == null) throw Exception('Failed to decode image');
+
+      // Resize to 224x224
+      final resizedImage =
+          img.copyResize(originalImage, width: 224, height: 224);
+
+      // Remove alpha channel if it exists (manual method)
+      final rgbImage =
+          img.Image(width: resizedImage.width, height: resizedImage.height);
+      for (int y = 0; y < resizedImage.height; y++) {
+        for (int x = 0; x < resizedImage.width; x++) {
+          final pixel = resizedImage.getPixel(x, y);
+          rgbImage.setPixelRgba(x, y, pixel.r, pixel.g, pixel.b, 255);
+        }
+      }
+      // Encode as JPEG
+      return Uint8List.fromList(img.encodeJpg(rgbImage));
+    } catch (e) {
+      print('Image preprocessing error: $e');
+      throw Exception('Image processing failed');
+    }
+  }
+
+  // Send image to API for prediction
   Future<void> _runInference() async {
-    if (_selectedImage == null || !_isModelLoaded) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select an image and ensure model is loaded'),
-        ),
-      );
+    if (_selectedImage == null) {
+      _showSnackBar('Please select an image first');
       return;
     }
 
@@ -114,37 +113,108 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
     });
 
     try {
-      // Simulate inference for now - replace with actual TFLite inference later
-      await Future.delayed(const Duration(seconds: 2));
+      // Preprocess the image
+      final processedImage = await _preprocessImage(_selectedImage!);
 
-      // Mock prediction results for testing
-      final mockPredictions = [
-        {'condition': 'Healthy', 'confidence': 0.89},
-        {'condition': 'Gingivitis', 'confidence': 0.76},
-        {'condition': 'Caries', 'confidence': 0.82},
-        {'condition': 'Calculus', 'confidence': 0.71},
-        {'condition': 'Tooth Discoloration', 'confidence': 0.65},
-      ];
+      // Create multipart request
+      var request = http.MultipartRequest('POST', Uri.parse(_apiEndpoint))
+        ..files.add(http.MultipartFile.fromBytes(
+          'file',
+          processedImage,
+          filename: 'dental_scan.jpg',
+          contentType: MediaType('image', 'jpeg'),
+        ));
 
-      // Randomly select one for demo
-      final randomResult =
-          mockPredictions[DateTime.now().millisecond % mockPredictions.length];
+      // Send request with timeout
+      var response = await request.send().timeout(_apiTimeout);
 
-      setState(() {
-        _predictedCondition = randomResult['condition'] as String;
-        _confidence = randomResult['confidence'] as double;
-        _hasResult = true;
-        _isProcessing = false;
-      });
+      // Process response
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        final jsonResponse = json.decode(responseBody);
+
+        setState(() {
+          _predictedCondition = jsonResponse['condition'];
+          _confidence = jsonResponse['confidence'] is int
+              ? (jsonResponse['confidence'] as int).toDouble()
+              : jsonResponse['confidence'] as double;
+          _allPredictions =
+              (jsonResponse['all_predictions'] as Map<String, dynamic>).map(
+            (key, value) => MapEntry(
+                key, value is int ? value.toDouble() : value as double),
+          );
+          _hasResult = true;
+        });
+      } else {
+        final errorBody = await response.stream.bytesToString();
+        _showSnackBar(
+            'API Error: ${response.statusCode} - ${response.reasonPhrase}\n$errorBody');
+      }
+    } on http.ClientException catch (e) {
+      _showSnackBar('Network error: ${e.message}');
+    } on TimeoutException {
+      _showSnackBar('Request timed out. Please try again');
     } catch (e) {
-      print('Inference error: $e');
+      _showSnackBar('Error: ${e.toString()}');
+    } finally {
       setState(() {
         _isProcessing = false;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error during prediction: $e')));
     }
+  }
+
+  // Helper to show snackbar messages
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 4),
+        backgroundColor: Colors.red.shade700,
+      ),
+    );
+  }
+
+  // Build prediction confidence bar
+  Widget _buildConfidenceBar(String condition, double confidence) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                condition,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF3A3A3A),
+                ),
+              ),
+              Text(
+                '${(confidence * 100).toStringAsFixed(1)}%',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF0A244E),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          LinearProgressIndicator(
+            value: confidence,
+            minHeight: 6,
+            backgroundColor: Colors.grey.shade300,
+            color: condition == _predictedCondition
+                ? const Color(0xFF7CF4A4)
+                : const Color(0xFFA0D9FF),
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -162,9 +232,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.black, size: 24),
-          onPressed: () => Navigator.of(
-            context,
-          ).pushReplacementNamed(ScanWorkflowScreen.routeName),
+          onPressed: () => Navigator.of(context)
+              .pushReplacementNamed(ScanWorkflowScreen.routeName),
         ),
         title: const Text(
           'Scan',
@@ -205,9 +274,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                       height: 40,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _selectedIndex == 0
-                            ? primaryGreen
-                            : Colors.white,
+                        color:
+                            _selectedIndex == 0 ? primaryGreen : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: _selectedIndex == 0
@@ -238,9 +306,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                       height: 40,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _selectedIndex == 1
-                            ? primaryGreen
-                            : Colors.white,
+                        color:
+                            _selectedIndex == 1 ? primaryGreen : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: _selectedIndex == 1
@@ -330,8 +397,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                 width: 140,
                 height: 44,
                 child: ElevatedButton(
-                  onPressed:
-                      _selectedImage != null && _isModelLoaded && !_isProcessing
+                  onPressed: _selectedImage != null && !_isProcessing
                       ? _runInference
                       : null,
                   style: ElevatedButton.styleFrom(
@@ -351,9 +417,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                             ),
                           ),
                         )
-                      : Text(
-                          _isModelLoaded ? 'Analyze' : 'Loading...',
-                          style: const TextStyle(
+                      : const Text(
+                          'Analyze',
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -365,7 +431,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
 
             const SizedBox(height: 32),
 
-            // 6) "Detected Conditions" section (only show if _hasResult is true)
+            // 6) "Detected Conditions" section
             if (_hasResult && _predictedCondition != null) ...[
               const Text(
                 'Detection Results',
@@ -415,7 +481,25 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                         color: navyText,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
+
+                    // All predictions visualization
+                    if (_allPredictions != null) ...[
+                      const Text(
+                        'All Predictions:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: subtitleText,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ..._allPredictions!.entries
+                          .map((entry) =>
+                              _buildConfidenceBar(entry.key, entry.value))
+                          .toList(),
+                      const SizedBox(height: 12),
+                    ],
 
                     // Placeholder for Grad-CAM heatmap
                     Container(
@@ -476,7 +560,6 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        // TODO: save result to history
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Result saved to history'),

@@ -157,7 +157,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 label: const Text(
                   'Continue with Google',
-                  style: TextStyle(fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: navyText,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.grey.shade200,
