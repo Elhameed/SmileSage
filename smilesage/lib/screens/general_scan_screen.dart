@@ -32,6 +32,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
   String? _predictedCondition;
   double? _confidence;
   Map<String, double>? _allPredictions;
+  Uint8List? _gradcamBytes;
 
   // API endpoint configuration
   static const String _apiEndpoint =
@@ -62,6 +63,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
           _predictedCondition = null;
           _confidence = null;
           _allPredictions = null;
+          _gradcamBytes = null;
         });
       }
     } catch (e) {
@@ -143,6 +145,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
             (key, value) => MapEntry(
                 key, value is int ? value.toDouble() : value as double),
           );
+          _gradcamBytes = base64Decode(jsonResponse['heatmap_base64']);
           _hasResult = true;
         });
       } else {
@@ -502,25 +505,21 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                     ],
 
                     // Placeholder for Grad-CAM heatmap
-                    Container(
-                      height: 120,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.grey.shade200,
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Grad-CAM Heatmap\n(Coming Soon)',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: _gradcamBytes != null
+                          ? Image.memory(_gradcamBytes!, fit: BoxFit.cover)
+                          : Container(
+                              height: 120,
+                              width: double.infinity,
+                              color: Colors.grey.shade200,
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'Grad-CAM Heatmap unavailable',
+                                style:
+                                    TextStyle(fontSize: 14, color: Colors.grey),
+                              ),
+                            ),
                     ),
                   ],
                 ),
