@@ -29,6 +29,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
   double? _confidence;
   Map<String, double>? _allPredictions;
   Uint8List? _gradcamBytes;
+  ScanResult? _lastScanResult;
 
   static const String _apiEndpoint =
       "https://teniola04-dental-api.hf.space/predict";
@@ -53,6 +54,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
           _confidence = null;
           _allPredictions = null;
           _gradcamBytes = null;
+          _lastScanResult = null;
         });
       }
     } catch (e) {
@@ -88,6 +90,14 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
     historyList.add(jsonEncode(result.toJson()));
     await prefs.setStringList('scan_history', historyList);
     _showSnackBar('Result saved to history');
+  }
+
+  void _handleSaveButton() {
+    if (_lastScanResult != null) {
+      _saveToHistory(_lastScanResult!);
+    } else {
+      _showSnackBar('No result to save');
+    }
   }
 
   Future<void> _runInference() async {
@@ -133,10 +143,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                   as Map<String, dynamic>)
               .map((key, value) => MapEntry(key, (value as num).toDouble()));
           _gradcamBytes = base64Decode(scanResult.heatmapImageBase64);
+          _lastScanResult = scanResult;
           _hasResult = true;
         });
-
-        await _saveToHistory(scanResult);
       } else {
         final errorBody = await response.stream.bytesToString();
         _showSnackBar(
@@ -160,7 +169,6 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
       SnackBar(
         content: Text(message),
         duration: const Duration(seconds: 4),
-        backgroundColor: Colors.red.shade700,
       ),
     );
   }
@@ -546,13 +554,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                   // Save to History (Filled)
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Result saved to history'),
-                          ),
-                        );
-                      },
+                      onPressed: _handleSaveButton,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryGreen,
                         shape: RoundedRectangleBorder(
