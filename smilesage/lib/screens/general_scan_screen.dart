@@ -6,7 +6,9 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image/image.dart' as img;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'scan_workflow_screen.dart';
+import '../models/scan_result.dart';
 import 'dart:async';
 
 class GeneralScanScreen extends StatefulWidget {
@@ -18,35 +20,22 @@ class GeneralScanScreen extends StatefulWidget {
 }
 
 class _GeneralScanScreenState extends State<GeneralScanScreen> {
-  // Track which scan type is selected: 0 = General, 1 = Braces
   int _selectedIndex = 0;
-
-  // Track whether an image/condition has been detected
   bool _hasResult = false;
-
-  // Image and API related variables
   File? _selectedImage;
   bool _isProcessing = false;
 
-  // Prediction results
   String? _predictedCondition;
   double? _confidence;
   Map<String, double>? _allPredictions;
   Uint8List? _gradcamBytes;
 
-  // API endpoint configuration
   static const String _apiEndpoint =
       "https://teniola04-dental-api.hf.space/predict";
   static const Duration _apiTimeout = Duration(seconds: 30);
 
   final ImagePicker _picker = ImagePicker();
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  // Pick image from gallery
   Future<void> _pickImageFromGallery() async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -59,7 +48,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
       if (pickedFile != null) {
         setState(() {
           _selectedImage = File(pickedFile.path);
-          _hasResult = false; // Reset previous results
+          _hasResult = false;
           _predictedCondition = null;
           _confidence = null;
           _allPredictions = null;
@@ -67,26 +56,18 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
         });
       }
     } catch (e) {
-      print('Error picking image: $e');
       _showSnackBar('Error selecting image: ${e.toString()}');
     }
   }
 
-  // Preprocess image to match model requirements
   Future<Uint8List> _preprocessImage(File imageFile) async {
     try {
-      // Read image bytes
       final imageBytes = await imageFile.readAsBytes();
-
-      // Decode image
       final originalImage = img.decodeImage(imageBytes);
       if (originalImage == null) throw Exception('Failed to decode image');
 
-      // Resize to 224x224
       final resizedImage =
           img.copyResize(originalImage, width: 224, height: 224);
-
-      // Remove alpha channel if it exists (manual method)
       final rgbImage =
           img.Image(width: resizedImage.width, height: resizedImage.height);
       for (int y = 0; y < resizedImage.height; y++) {
@@ -95,15 +76,20 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
           rgbImage.setPixelRgba(x, y, pixel.r, pixel.g, pixel.b, 255);
         }
       }
-      // Encode as JPEG
       return Uint8List.fromList(img.encodeJpg(rgbImage));
     } catch (e) {
-      print('Image preprocessing error: $e');
       throw Exception('Image processing failed');
     }
   }
 
-  // Send image to API for prediction
+  Future<void> _saveToHistory(ScanResult result) async {
+    final prefs = await SharedPreferences.getInstance();
+    final historyList = prefs.getStringList('scan_history') ?? [];
+    historyList.add(jsonEncode(result.toJson()));
+    await prefs.setStringList('scan_history', historyList);
+    _showSnackBar('Result saved to history');
+  }
+
   Future<void> _runInference() async {
     if (_selectedImage == null) {
       _showSnackBar('Please select an image first');
@@ -115,10 +101,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
     });
 
     try {
-      // Preprocess the image
       final processedImage = await _preprocessImage(_selectedImage!);
 
-      // Create multipart request
       var request = http.MultipartRequest('POST', Uri.parse(_apiEndpoint))
         ..files.add(http.MultipartFile.fromBytes(
           'file',
@@ -127,27 +111,32 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
           contentType: MediaType('image', 'jpeg'),
         ));
 
-      // Send request with timeout
       var response = await request.send().timeout(_apiTimeout);
 
-      // Process response
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
         final jsonResponse = json.decode(responseBody);
 
+        final scanResult = ScanResult(
+          predictedCondition: jsonResponse['condition'],
+          confidence: (jsonResponse['confidence'] as num).toDouble(),
+          originalImageBase64:
+              base64Encode(await _selectedImage!.readAsBytes()),
+          heatmapImageBase64: jsonResponse['heatmap_base64'],
+          timestamp: DateTime.now(),
+        );
+
         setState(() {
-          _predictedCondition = jsonResponse['condition'];
-          _confidence = jsonResponse['confidence'] is int
-              ? (jsonResponse['confidence'] as int).toDouble()
-              : jsonResponse['confidence'] as double;
-          _allPredictions =
-              (jsonResponse['all_predictions'] as Map<String, dynamic>).map(
-            (key, value) => MapEntry(
-                key, value is int ? value.toDouble() : value as double),
-          );
-          _gradcamBytes = base64Decode(jsonResponse['heatmap_base64']);
+          _predictedCondition = scanResult.predictedCondition;
+          _confidence = scanResult.confidence;
+          _allPredictions = (jsonResponse['all_predictions']
+                  as Map<String, dynamic>)
+              .map((key, value) => MapEntry(key, (value as num).toDouble()));
+          _gradcamBytes = base64Decode(scanResult.heatmapImageBase64);
           _hasResult = true;
         });
+
+        await _saveToHistory(scanResult);
       } else {
         final errorBody = await response.stream.bytesToString();
         _showSnackBar(
@@ -166,7 +155,6 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
     }
   }
 
-  // Helper to show snackbar messages
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

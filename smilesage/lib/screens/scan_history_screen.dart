@@ -1,112 +1,117 @@
-// lib/screens/scan_history_screen.dart
-
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/scan_result.dart';
 import 'scan_detail_screen.dart';
 
-class ScanHistoryScreen extends StatelessWidget {
+class ScanHistoryScreen extends StatefulWidget {
   static const routeName = '/scan-history';
   const ScanHistoryScreen({Key? key}) : super(key: key);
 
-  // Example scan history data
-  final List<Map<String, String>> _scans = const [
-    {
-      'title': 'Scan #1',
-      'date': 'July 20, 2024',
-      'image': 'assets/images/scan1.png',
-    },
-    {
-      'title': 'Scan #2',
-      'date': 'June 15, 2024',
-      'image': 'assets/images/scan1.png',
-    },
-    {
-      'title': 'Scan #3',
-      'date': 'May 10, 2024',
-      'image': 'assets/images/scan1.png',
-    },
-    {
-      'title': 'Scan #4',
-      'date': 'April 5, 2024',
-      'image': 'assets/images/scan1.png',
-    },
-  ];
+  @override
+  State<ScanHistoryScreen> createState() => _ScanHistoryScreenState();
+}
+
+class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
+  late Future<List<ScanResult>> _historyFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _historyFuture = _loadScanHistory();
+  }
+
+  Future<List<ScanResult>> _loadScanHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final historyList = prefs.getStringList('scan_history') ?? [];
+    return historyList
+        .map((item) => ScanResult.fromJson(jsonDecode(item)))
+        .toList()
+        .reversed
+        .toList();
+  }
+
+  Future<void> _deleteScan(ScanResult target) async {
+    final prefs = await SharedPreferences.getInstance();
+    final historyList = prefs.getStringList('scan_history') ?? [];
+
+    final updatedList = historyList
+        .where((item) {
+          final decoded = ScanResult.fromJson(jsonDecode(item));
+          return decoded.timestamp != target.timestamp;
+        })
+        .map((e) => e)
+        .toList();
+
+    await prefs.setStringList('scan_history', updatedList);
+  }
 
   @override
   Widget build(BuildContext context) {
-    const headingText = Color(0xFF0A244E);
-    const subtitleText = Color(0xFF7CA78C);
-
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: const BackButton(color: Colors.black),
-        title: const Text(
-          'Scan History',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
+        title: const Text('Scan History'),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        itemCount: _scans.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 16),
-        itemBuilder: (context, i) {
-          final scan = _scans[i];
-          return InkWell(
-            onTap: () {
-              // TODO: navigate to scan detail
-              Navigator.of(context).pushNamed(ScanDetailScreen.routeName);
-            },
-            child: Row(
-              children: [
-                // Thumbnail
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    scan['image']!,
+      body: FutureBuilder<List<ScanResult>>(
+        future: _historyFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No scan history yet.'));
+          }
+
+          final scans = snapshot.data!;
+
+          return ListView.builder(
+            itemCount: scans.length,
+            itemBuilder: (context, index) {
+              final scan = scans[index];
+
+              return Dismissible(
+                key: ValueKey(scan.timestamp.toIso8601String()),
+                background: Container(
+                  color: Colors.red,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                direction: DismissDirection.endToStart,
+                onDismissed: (_) async {
+                  await _deleteScan(scan);
+                  setState(() {
+                    _historyFuture = _loadScanHistory();
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Scan deleted')),
+                  );
+                },
+                child: ListTile(
+                  leading: Image.memory(
+                    base64Decode(scan.originalImageBase64),
                     width: 56,
                     height: 56,
                     fit: BoxFit.cover,
                   ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // Title & date
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        scan['title']!,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: headingText,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        scan['date']!,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: subtitleText,
-                        ),
-                      ),
-                    ],
+                  title: Text(scan.predictedCondition),
+                  subtitle: Text(
+                    '${scan.confidence.toStringAsFixed(2)} confidence\n${scan.timestamp.toLocal()}'
+                        .split('.')[0],
                   ),
+                  isThreeLine: true,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ScanDetailScreen(scanResult: scan),
+                      ),
+                    );
+                  },
                 ),
-
-                // Chevron
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Colors.black54,
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),

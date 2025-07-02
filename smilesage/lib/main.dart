@@ -15,9 +15,11 @@ import 'screens/learn_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/tips_screen.dart';
 import 'screens/scan_history_screen.dart';
-import 'screens/scan_detail_screen.dart';
 
-void main() => runApp(const DentalApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // ✅ IMPORTANT LINE
+  runApp(const DentalApp());
+}
 
 class DentalApp extends StatelessWidget {
   const DentalApp({Key? key}) : super(key: key);
@@ -27,12 +29,10 @@ class DentalApp extends StatelessWidget {
     return MaterialApp(
       title: 'SmileSage',
       debugShowCheckedModeBanner: false,
-
       theme: ThemeData(
         textTheme: GoogleFonts.lexendTextTheme(Theme.of(context).textTheme),
         scaffoldBackgroundColor: Colors.white,
       ),
-
       initialRoute: StartScreen.routeName,
       routes: {
         StartScreen.routeName: (_) => const StartScreen(),
@@ -50,7 +50,6 @@ class DentalApp extends StatelessWidget {
         ProfileScreen.routeName: (_) => const ProfileScreen(),
         TipsScreen.routeName: (_) => const TipsScreen(),
         ScanHistoryScreen.routeName: (_) => const ScanHistoryScreen(),
-        ScanDetailScreen.routeName: (_) => const ScanDetailScreen(),
       },
     );
   }
