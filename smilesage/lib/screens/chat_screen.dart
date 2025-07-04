@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ChatScreen extends StatefulWidget {
   static const routeName = '/chat';
@@ -14,23 +16,117 @@ class _ChatScreenState extends State<ChatScreen> {
   ];
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollCtrl = ScrollController();
+  bool _isSending = false;
 
-  void _sendMessage() {
-    final text = _controller.text.trim();
-    if (text.isEmpty) return;
-    setState(() {
-      _messages.add(_ChatMessage(text: text, isUser: true));
-    });
-    _controller.clear();
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollCtrl.hasClients) {
-        _scrollCtrl.animateTo(
-          _scrollCtrl.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
+  // Gemini endpoint
+  static const String _geminiEndpoint =
+      "https://teniola04-gemini-dental-chat.hf.space/chat";
+
+  // Context from the scan (if any)
+  Map<String, dynamic>? _scanContext;
+
+  @override
+  void initState() {
+    super.initState();
+    // Extract the arguments passed from the scan screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final arguments = ModalRoute.of(context)?.settings.arguments;
+      if (arguments != null && arguments is Map<String, dynamic>) {
+        setState(() {
+          _scanContext = arguments;
+          // Add a context message at the beginning of the chat
+          final condition = _scanContext!['condition'] ?? 'a dental condition';
+          final confidence = _scanContext!['confidence'] != null
+              ? '${(_scanContext!['confidence']! * 100).toStringAsFixed(1)}% confidence'
+              : '';
+          _messages.insert(
+              1,
+              _ChatMessage(
+                text:
+                    "I see you recently scanned for $condition ($confidence). How can I help you with this or other dental concerns?",
+                isUser: false,
+              ));
+        });
       }
     });
+  }
+
+  void _sendMessage() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      _messages.add(_ChatMessage(text: text, isUser: true));
+      _isSending = true;
+    });
+    _controller.clear();
+    _scrollToBottom();
+
+    try {
+      // Prepare the messages for Gemini
+      final List<Map<String, dynamic>> geminiMessages = [
+        // System prompt
+        {
+          "role": "user",
+          "content":
+              "You are a dental health assistant. Respond with clear, evidence-based short answers about oral hygiene, dental diseases, and oral care. If the question is outside this domain, politely explain that you're limited to dental topics."
+        },
+        // Then the entire chat history including the context message and user messages
+        ..._messages
+            .map((msg) => {
+                  "role": msg.isUser ? "user" : "model",
+                  "content": msg.text,
+                })
+            .toList(),
+      ];
+
+      final response = await http.post(
+        Uri.parse(_geminiEndpoint),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "system_prompt":
+              "You are a dental health assistant. Respond with clear, evidence-based answers about oral hygiene, dental diseases, and oral care. If the question is outside this domain, politely explain that you're limited to dental topics.",
+          "messages": geminiMessages,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        setState(() {
+          _messages.add(_ChatMessage(
+            text: jsonResponse['response'],
+            isUser: false,
+          ));
+        });
+      } else {
+        _showError('API Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      _showError('Error: $e');
+    } finally {
+      setState(() => _isSending = false);
+      _scrollToBottom();
+    }
+  }
+
+  void _showError(String message) {
+    setState(() {
+      _messages.add(_ChatMessage(
+        text: "Sorry, I couldn't process that. $message",
+        isUser: false,
+      ));
+    });
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    if (_scrollCtrl.hasClients) {
+      _scrollCtrl.animateTo(
+        _scrollCtrl.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
@@ -175,11 +271,23 @@ class _ChatScreenState extends State<ChatScreen> {
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
                   ),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.send, color: Color(0xFF7CF4A4)),
-                    onPressed: _sendMessage,
-                  ),
+                  suffixIcon: _isSending
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF7CF4A4),
+                            ),
+                          ),
+                        )
+                      : IconButton(
+                          icon:
+                              const Icon(Icons.send, color: Color(0xFF7CF4A4)),
+                          onPressed: _sendMessage,
+                        ),
                 ),
+                onSubmitted: (text) => _sendMessage(),
               ),
             ),
           ],

@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'scan_workflow_screen.dart';
 import '../models/scan_result.dart';
 import 'dart:async';
+import 'chat_screen.dart'; // Added for navigation
 
 class GeneralScanScreen extends StatefulWidget {
   static const routeName = '/general-scan';
@@ -30,9 +31,13 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
   Map<String, double>? _allPredictions;
   Uint8List? _gradcamBytes;
   ScanResult? _lastScanResult;
+  String? _explanation; // For storing the condition explanation
+  bool _isFetchingExplanation = false; // Loading state for explanation
 
   static const String _apiEndpoint =
       "https://teniola04-dental-api.hf.space/predict";
+  static const String _explanationEndpoint =
+      "https://teniola04-gemini-dental-chat.hf.space/chat"; // Gemini proxy
   static const Duration _apiTimeout = Duration(seconds: 30);
 
   final ImagePicker _picker = ImagePicker();
@@ -55,6 +60,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
           _allPredictions = null;
           _gradcamBytes = null;
           _lastScanResult = null;
+          _explanation = null; // Reset explanation
         });
       }
     } catch (e) {
@@ -81,6 +87,48 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
       return Uint8List.fromList(img.encodeJpg(rgbImage));
     } catch (e) {
       throw Exception('Image processing failed');
+    }
+  }
+
+  Future<void> _fetchConditionExplanation(String condition) async {
+    setState(() {
+      _isFetchingExplanation = true;
+    });
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse(_explanationEndpoint),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              "system_prompt":
+                  "You are a dental health assistant. Provide a concise, easy-to-understand explanation of dental conditions in 1-2 sentences. Focus on causes, symptoms, and basic care tips. Do not mention that you are an AI.",
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Explain what $condition is in simple terms."
+                }
+              ]
+            }),
+          )
+          .timeout(_apiTimeout);
+
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        setState(() {
+          _explanation = jsonResponse['response'];
+        });
+      } else {
+        _showSnackBar('Failed to get explanation: ${response.statusCode}');
+      }
+    } on TimeoutException {
+      _showSnackBar('Explanation request timed out');
+    } catch (e) {
+      _showSnackBar('Error getting explanation: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isFetchingExplanation = false;
+      });
     }
   }
 
@@ -146,6 +194,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
           _lastScanResult = scanResult;
           _hasResult = true;
         });
+
+        // Fetch explanation for the predicted condition
+        _fetchConditionExplanation(_predictedCondition!);
       } else {
         final errorBody = await response.stream.bytesToString();
         _showSnackBar(
@@ -482,23 +533,49 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // All predictions visualization
-                    if (_allPredictions != null) ...[
-                      const Text(
-                        'All Predictions:',
+                    // Explanation section
+                    if (_explanation != null) ...[
+                      Text(
+                        'Explanation:',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: subtitleText,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      ..._allPredictions!.entries
-                          .map((entry) =>
-                              _buildConfidenceBar(entry.key, entry.value))
-                          .toList(),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 4),
+                      Text(
+                        _explanation!,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: navyText,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ] else if (_isFetchingExplanation) ...[
+                      const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                      const SizedBox(height: 16),
                     ],
+
+                    // // All predictions visualization
+                    // if (_allPredictions != null) ...[
+                    //   const Text(
+                    //     'All Predictions:',
+                    //     style: TextStyle(
+                    //       fontSize: 14,
+                    //       fontWeight: FontWeight.w500,
+                    //       color: subtitleText,
+                    //     ),
+                    //   ),
+                    //   const SizedBox(height: 8),
+                    //   ..._allPredictions!.entries
+                    //       .map((entry) =>
+                    //           _buildConfidenceBar(entry.key, entry.value))
+                    //       .toList(),
+                    //   const SizedBox(height: 12),
+                    // ],
 
                     // Placeholder for Grad-CAM heatmap
                     ClipRRect(
@@ -529,7 +606,13 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        Navigator.of(context).pushNamed('/chat');
+                        Navigator.of(context).pushNamed(
+                          ChatScreen.routeName,
+                          arguments: {
+                            'condition': _predictedCondition,
+                            'confidence': _confidence,
+                          },
+                        );
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: primaryGreen, width: 1.2),
