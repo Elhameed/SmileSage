@@ -68,6 +68,32 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
     }
   }
 
+  Future<void> _pickImageFromCamera() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+          _hasResult = false;
+          _predictedCondition = null;
+          _confidence = null;
+          _allPredictions = null;
+          _gradcamBytes = null;
+          _lastScanResult = null;
+          _explanation = null; // Reset explanation
+        });
+      }
+    } catch (e) {
+      _showSnackBar('Error capturing image: ${e.toString()}');
+    }
+  }
+
   Future<Uint8List> _preprocessImage(File imageFile) async {
     try {
       final imageBytes = await imageFile.readAsBytes();
@@ -394,41 +420,64 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
             const SizedBox(height: 12),
 
             // 4) Image selection area
-            GestureDetector(
-              onTap: _pickImageFromGallery,
-              child: Container(
-                height: 200,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: lightGrayFill,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.grey.shade300,
-                    width: 1,
-                    style: BorderStyle.solid,
-                  ),
+            Container(
+              height: 200,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: lightGrayFill,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                  style: BorderStyle.solid,
                 ),
-                child: _selectedImage != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.file(_selectedImage!, fit: BoxFit.cover),
-                      )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(
-                            Icons.add_photo_alternate_outlined,
-                            size: 48,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Tap to select image from gallery',
-                            style: TextStyle(fontSize: 14, color: subtitleText),
-                          ),
-                        ],
-                      ),
               ),
+              child: _selectedImage != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.add_a_photo_outlined,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: _pickImageFromCamera,
+                              icon: const Icon(Icons.camera_alt),
+                              label: const Text('Take Photo'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryGreen,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            OutlinedButton.icon(
+                              onPressed: _pickImageFromGallery,
+                              icon: const Icon(Icons.photo_library),
+                              label: const Text('Gallery'),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                    color: primaryGreen, width: 1.2),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
             ),
 
             const SizedBox(height: 8),
