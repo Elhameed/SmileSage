@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../models/scan_result.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class ScanDetailScreen extends StatelessWidget {
   static const routeName = '/scan-detail';
@@ -14,6 +15,7 @@ class ScanDetailScreen extends StatelessWidget {
     const navyText = Color(0xFF0A244E);
     const subtitleText = Color(0xFF3A3A3A);
     const primaryGreen = Color(0xFF7CF4A4);
+    const linkText = Color(0xFFF0F5F2);
     const lightGrayFill = Color(0xFFF6F6F6);
 
     return Scaffold(
@@ -45,8 +47,7 @@ class ScanDetailScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.all(12),
-                  child: const Icon(Icons.medical_services_outlined,
-                      size: 32, color: navyText),
+                  child: Icon(MdiIcons.toothOutline, size: 32, color: navyText),
                 ),
                 const SizedBox(width: 14),
                 Column(
@@ -84,27 +85,20 @@ class ScanDetailScreen extends StatelessWidget {
                 color: navyText,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 14),
             if (scanResult.predictedCondition.isNotEmpty)
               Text(
-                'The scan indicates signs of ${scanResult.predictedCondition.toLowerCase()}.',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: subtitleText,
-                ),
-              ),
-            if (scanResult.explanation != null &&
-                scanResult.explanation!.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                scanResult.explanation!,
+                'The scan indicates signs of  ${scanResult.predictedCondition.toLowerCase()}' +
+                    (scanResult.explanation != null &&
+                            scanResult.explanation!.isNotEmpty
+                        ? ', ${scanResult.explanation!}'
+                        : '.'),
                 style: const TextStyle(
                   fontSize: 15,
                   color: subtitleText,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
-            ],
             const SizedBox(height: 24),
 
             // Personalized Tips Section
@@ -116,9 +110,11 @@ class ScanDetailScreen extends StatelessWidget {
                 color: navyText,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 14),
             _buildTip('Brush twice daily with fluoride toothpaste.'),
+            const SizedBox(height: 14),
             _buildTip('Floss daily to remove plaque between teeth.'),
+            const SizedBox(height: 14),
             _buildTip('Schedule a dental check-up within the next month.'),
             const SizedBox(height: 24),
 
@@ -132,58 +128,74 @@ class ScanDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
+            // First pair: Original Dental Scan
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text('Original',
-                          style: TextStyle(fontSize: 13, color: subtitleText)),
-                      const Text('Dental Scan',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: navyText)),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.memory(
-                          base64Decode(scanResult.originalImageBase64),
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ],
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Original',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: primaryGreen,
+                          fontWeight: FontWeight.w400,
+                        )),
+                    const Text('Dental Scan',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Colors.black,
+                        )),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text('Grad-CAM',
-                          style: TextStyle(fontSize: 13, color: subtitleText)),
-                      const Text('Heatmap Overlay',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: navyText)),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.memory(
-                          base64Decode(scanResult.heatmapImageBase64),
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ],
+                const SizedBox(width: 56),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.memory(
+                    base64Decode(scanResult.originalImageBase64),
+                    width: 120,
+                    height: 70,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 32),
+            // Second pair: Grad-CAM Heatmap Overlay
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Grad-CAM',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: primaryGreen,
+                          fontWeight: FontWeight.w400,
+                        )),
+                    const Text('Heatmap Overlay',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Colors.black,
+                        )),
+                  ],
+                ),
+                const SizedBox(width: 56),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.memory(
+                    base64Decode(scanResult.heatmapImageBase64),
+                    width: 120,
+                    height: 70,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 36),
 
             // Bottom Buttons
             Row(
@@ -216,12 +228,12 @@ class ScanDetailScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: ElevatedButton(
                     onPressed: () {
-                      // TODO: Implement share via email
+                      // TODO: Implement Share via Email
                     },
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: navyText, width: 1.2),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: linkText,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -232,7 +244,7 @@ class ScanDetailScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: navyText,
+                        color: Colors.black,
                       ),
                     ),
                   ),
@@ -251,14 +263,16 @@ class ScanDetailScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Checkbox(value: false, onChanged: null),
+        Padding(
+          padding: const EdgeInsets.only(top: 2.0),
+          child:
+              Icon(Icons.tips_and_updates, color: Color(0xFF7CF4A4), size: 22),
+        ),
+        const SizedBox(width: 8),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 15, color: Color(0xFF3A3A3A)),
-            ),
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 15, color: Color(0xFF3A3A3A)),
           ),
         ),
       ],
