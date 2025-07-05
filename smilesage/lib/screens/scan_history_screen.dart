@@ -49,8 +49,20 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF6F6F6),
       appBar: AppBar(
-        title: const Text('Scan History'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text(
+          'Scan History',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
       ),
       body: FutureBuilder<List<ScanResult>>(
         future: _historyFuture,
@@ -58,17 +70,21 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text('Error:  {snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No scan history yet.'));
           }
 
           final scans = snapshot.data!;
 
-          return ListView.builder(
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
             itemCount: scans.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final scan = scans[index];
+              final scanNumber = 'Scan #${index + 1}';
+              final formattedDate = _formatDate(scan.timestamp);
 
               return Dismissible(
                 key: ValueKey(scan.timestamp.toIso8601String()),
@@ -88,27 +104,72 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                     const SnackBar(content: Text('Scan deleted')),
                   );
                 },
-                child: ListTile(
-                  leading: Image.memory(
-                    base64Decode(scan.originalImageBase64),
-                    width: 56,
-                    height: 56,
-                    fit: BoxFit.cover,
-                  ),
-                  title: Text(scan.predictedCondition),
-                  subtitle: Text(
-                    '${scan.confidence.toStringAsFixed(2)} confidence\n${scan.timestamp.toLocal()}'
-                        .split('.')[0],
-                  ),
-                  isThreeLine: true,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ScanDetailScreen(scanResult: scan),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
-                    );
-                  },
+                    ],
+                  ),
+                  child: ListTile(
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.memory(
+                        base64Decode(scan.originalImageBase64),
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    title: Text(
+                      scanNumber,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 17,
+                        color: Colors.black,
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            formattedDate,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF8A8A8A),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _formatTime(scan.timestamp),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFFB0B0B0),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right,
+                        color: Colors.black, size: 28),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ScanDetailScreen(scanResult: scan),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               );
             },
@@ -116,5 +177,34 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
         },
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    // Example: July 20, 2024
+    final months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  String _formatTime(DateTime date) {
+    // Example: 02:15 PM
+    int hour = date.hour;
+    final minute = date.minute.toString().padLeft(2, '0');
+    final ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    return '$hour:$minute $ampm';
   }
 }
