@@ -168,7 +168,16 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
 
   void _handleSaveButton() {
     if (_lastScanResult != null) {
-      _saveToHistory(_lastScanResult!);
+      // Create a new ScanResult with explanation included
+      final resultWithExplanation = ScanResult(
+        predictedCondition: _lastScanResult!.predictedCondition,
+        confidence: _lastScanResult!.confidence,
+        originalImageBase64: _lastScanResult!.originalImageBase64,
+        heatmapImageBase64: _lastScanResult!.heatmapImageBase64,
+        timestamp: _lastScanResult!.timestamp,
+        explanation: _explanation,
+      );
+      _saveToHistory(resultWithExplanation);
     } else {
       _showSnackBar('No result to save');
     }
