@@ -85,7 +85,7 @@ class _ChatScreenState extends State<ChatScreen> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           "system_prompt":
-              "You are a dental health assistant. Respond with clear, evidence-based answers about oral hygiene, dental diseases, and oral care. If the question is outside this domain, politely explain that you're limited to dental topics.",
+              "You are a dental health assistant. Respond with clear, evidence-based short answers about oral hygiene, dental diseases, and oral care. If the question is outside this domain, politely explain that you're limited to dental topics.",
           "messages": geminiMessages,
         }),
       );

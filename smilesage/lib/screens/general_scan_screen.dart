@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'scan_workflow_screen.dart';
 import '../models/scan_result.dart';
 import 'dart:async';
-import 'chat_screen.dart'; // Added for navigation
+import 'chat_screen.dart';
 
 class GeneralScanScreen extends StatefulWidget {
   static const routeName = '/general-scan';
@@ -608,23 +608,23 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                       const SizedBox(height: 16),
                     ],
 
-                    // // All predictions visualization
-                    // if (_allPredictions != null) ...[
-                    //   const Text(
-                    //     'All Predictions:',
-                    //     style: TextStyle(
-                    //       fontSize: 14,
-                    //       fontWeight: FontWeight.w500,
-                    //       color: subtitleText,
-                    //     ),
-                    //   ),
-                    //   const SizedBox(height: 8),
-                    //   ..._allPredictions!.entries
-                    //       .map((entry) =>
-                    //           _buildConfidenceBar(entry.key, entry.value))
-                    //       .toList(),
-                    //   const SizedBox(height: 12),
-                    // ],
+                    // All predictions visualization
+                    if (_allPredictions != null) ...[
+                      const Text(
+                        'All Predictions:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: subtitleText,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ..._allPredictions!.entries
+                          .map((entry) =>
+                              _buildConfidenceBar(entry.key, entry.value))
+                          .toList(),
+                      const SizedBox(height: 12),
+                    ],
 
                     // Placeholder for Grad-CAM heatmap
                     ClipRRect(
