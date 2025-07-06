@@ -60,7 +60,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 22,
+            fontSize: 20,
           ),
         ),
       ),

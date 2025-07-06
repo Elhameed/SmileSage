@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../models/scan_result.dart';
+import '../services/pdf_service.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:open_file/open_file.dart';
 
 class ScanDetailScreen extends StatelessWidget {
   static const routeName = '/scan-detail';
@@ -202,8 +204,18 @@ class ScanDetailScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: Implement PDF download
+                    onPressed: () async {
+                      final navigator = Navigator.of(context);
+                      _showLoadingDialog(context);
+                      final pdfPath =
+                          await PdfService.generateScanReport(scanResult);
+                      navigator.pop(); // Close loading dialog
+
+                      if (pdfPath != null) {
+                        _showSuccessDialog(context, pdfPath);
+                      } else {
+                        _showErrorDialog(context);
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryGreen,
@@ -276,6 +288,74 @@ class ScanDetailScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  // Helper methods for PDF download dialogs
+  void _showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Row(
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(width: 20),
+              const Text('Generating PDF...'),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, String pdfPath) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('PDF Generated Successfully'),
+          content:
+              const Text('Your scan report has been saved to your device.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                OpenFile.open(pdfPath);
+              },
+              child: const Text('Open PDF'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: const Text(
+              'Failed to generate PDF. Please check your storage permissions and try again.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

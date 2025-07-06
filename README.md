@@ -56,6 +56,30 @@ Detailed plan available in `deployment/deployment_plan.md covering:
 
 3. Automated model updates and TFLite asset versioning
 
+## Features
+
+### PDF Report Generation
+The app includes a comprehensive PDF report generation feature that allows users to download detailed scan reports. Each PDF includes:
+
+- **Scan Results**: Predicted condition and confidence level
+- **Analysis**: Detailed explanation of the scan findings
+- **Personalized Tips**: Customized dental care recommendations
+- **Scan Images**: Both original and Grad-CAM heatmap overlay images
+- **Professional Layout**: Clean, medical-grade report formatting
+
+**How to use:**
+1. Navigate to any scan detail screen
+2. Tap the "Download PDF" button
+3. Grant storage permissions when prompted
+4. The PDF will be saved to your device's Downloads folder
+5. Option to open the PDF directly from the app
+
+**Technical Implementation:**
+- Uses the `pdf` package for PDF generation
+- Implements proper permission handling for file storage
+- Supports both Android and iOS platforms
+- Generates unique filenames with timestamps
+
 ## Video Demo
 A 5–10 minute walkthrough demonstrating:
 
