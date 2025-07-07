@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'sign_up_screen.dart';
 import '../services/auth_service.dart';
+import 'permissions_screen.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
@@ -25,12 +27,15 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     setState(() => _loading = true);
     try {
-      await AuthService().signIn(
+      final credential = await AuthService().signIn(
         _emailCtrl.text.trim(),
         _passwordCtrl.text.trim(),
       );
-      // Navigate to home or next screen
-      Navigator.of(context).pushNamed('/permissions');
+      if (credential.additionalUserInfo?.isNewUser == true) {
+        Navigator.of(context).pushReplacementNamed(PermissionsScreen.routeName);
+      } else {
+        Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
+      }
     } catch (e) {
       _showError(context, e.toString());
     } finally {
@@ -41,8 +46,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleGoogleLogin() async {
     setState(() => _loading = true);
     try {
-      await AuthService().signInWithGoogle();
-      Navigator.of(context).pushNamed('/permissions');
+      final credential = await AuthService().signInWithGoogle();
+      if (credential.additionalUserInfo?.isNewUser == true) {
+        Navigator.of(context).pushReplacementNamed(PermissionsScreen.routeName);
+      } else {
+        Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
+      }
     } catch (e) {
       _showError(context, e.toString());
     } finally {

@@ -6,6 +6,12 @@ import 'clinics_screen.dart';
 import 'learn_screen.dart';
 import 'scan_history_screen.dart';
 import 'reminders_screen.dart';
+import '../services/auth_service.dart';
+import 'login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const routeName = '/profile';
@@ -21,6 +27,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _wearBraces = false;
   bool _dailyTips = false;
   bool _checkupReminders = false;
+
+  String? _name;
+  String? _email;
+  String? _age;
+  bool _editingName = false;
+  bool _editingAge = false;
+  final _nameController = TextEditingController();
+  final _ageController = TextEditingController();
+  String? _profileImageBase64;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = AuthService().currentUser;
+    _name = user?.displayName ?? '';
+    _email = user?.email ?? '';
+    _nameController.text = _name ?? '';
+    _loadAge();
+    _loadProfileImage();
+  }
+
+  Future<void> _loadAge() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _age = prefs.getString('user_age') ?? '';
+      _ageController.text = _age ?? '';
+    });
+  }
+
+  Future<void> _saveAge() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_age', _ageController.text.trim());
+    setState(() {
+      _age = _ageController.text.trim();
+      _editingAge = false;
+    });
+  }
+
+  Future<void> _saveName() async {
+    final user = AuthService().currentUser;
+    await user?.updateDisplayName(_nameController.text.trim());
+    setState(() {
+      _name = _nameController.text.trim();
+      _editingName = false;
+    });
+  }
+
+  Future<void> _pickProfileImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      final base64Image = base64Encode(bytes);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('profile_image', base64Image);
+      setState(() {
+        _profileImageBase64 = base64Image;
+      });
+    }
+  }
+
+  Future<void> _loadProfileImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _profileImageBase64 = prefs.getString('profile_image');
+    });
+  }
 
   void _onNavItemTapped(int index) {
     switch (index) {
@@ -70,25 +143,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Avatar
-            const CircleAvatar(
-              radius: 48,
-              backgroundImage: AssetImage('assets/images/avatar.png'),
-            ),
+            const SizedBox(height: 8),
+            _buildProfileAvatar(),
             const SizedBox(height: 16),
 
             // Name & email
-            const Text(
-              'Ethan Carter',
-              style: TextStyle(
+            Text(
+              _name ?? '',
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: headingText,
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'ethan.carter@email.com',
-              style: TextStyle(fontSize: 14, color: subtitleText),
+            Text(
+              _email ?? '',
+              style: const TextStyle(fontSize: 14, color: subtitleText),
             ),
 
             const SizedBox(height: 24),
@@ -122,16 +193,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 4),
             Row(
               children: [
-                const Expanded(
-                  child: Text(
-                    'Ethan Carter',
-                    style: TextStyle(fontSize: 16, color: subtitleText),
-                  ),
+                Expanded(
+                  child: _editingName
+                      ? TextField(
+                          controller: _nameController,
+                          autofocus: true,
+                          onSubmitted: (_) => _saveName(),
+                        )
+                      : Text(
+                          _name ?? '',
+                          style: const TextStyle(
+                              fontSize: 16, color: subtitleText),
+                        ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit, color: headingText),
+                  icon: Icon(_editingName ? Icons.check : Icons.edit,
+                      color: headingText),
                   onPressed: () {
-                    // TODO: edit name
+                    if (_editingName) {
+                      _saveName();
+                    } else {
+                      setState(() => _editingName = true);
+                    }
                   },
                 ),
               ],
@@ -153,16 +236,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 4),
             Row(
               children: [
-                const Expanded(
-                  child: Text(
-                    'Optional',
-                    style: TextStyle(fontSize: 16, color: subtitleText),
-                  ),
+                Expanded(
+                  child: _editingAge
+                      ? TextField(
+                          controller: _ageController,
+                          keyboardType: TextInputType.number,
+                          autofocus: true,
+                          onSubmitted: (_) => _saveAge(),
+                        )
+                      : Text(
+                          _age ?? 'Optional',
+                          style: const TextStyle(
+                              fontSize: 16, color: subtitleText),
+                        ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit, color: headingText),
+                  icon: Icon(_editingAge ? Icons.check : Icons.edit,
+                      color: headingText),
                   onPressed: () {
-                    // TODO: edit age
+                    if (_editingAge) {
+                      _saveAge();
+                    } else {
+                      setState(() => _editingAge = true);
+                    }
                   },
                 ),
               ],
@@ -336,8 +432,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: logout
+                    onPressed: () async {
+                      await AuthService().signOut();
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                          LoginScreen.routeName, (route) => false);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: inputBg,
@@ -395,6 +493,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProfileAvatar() {
+    Widget avatar;
+    if (_profileImageBase64 != null && _profileImageBase64!.isNotEmpty) {
+      avatar = CircleAvatar(
+        radius: 48,
+        backgroundImage: MemoryImage(base64Decode(_profileImageBase64!)),
+      );
+    } else {
+      avatar = const CircleAvatar(
+        radius: 48,
+        backgroundImage: AssetImage('assets/images/avatar.png'),
+      );
+    }
+    return Stack(
+      children: [
+        avatar,
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: GestureDetector(
+            onTap: _pickProfileImage,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 2,
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(6),
+              child: const Icon(Icons.edit, size: 20),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

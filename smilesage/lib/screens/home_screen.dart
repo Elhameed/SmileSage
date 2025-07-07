@@ -5,6 +5,9 @@ import 'clinics_screen.dart';
 import 'learn_screen.dart';
 import 'profile_screen.dart';
 import 'reminders_screen.dart';
+import '../services/auth_service.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home';
@@ -17,6 +20,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // Tracks which bottom nav item is selected; Home = 0
   int _selectedIndex = 0;
+
+  String? _profileImageBase64;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _profileImageBase64 = prefs.getString('profile_image');
+    });
+  }
 
   void _onNavItemTapped(int index) {
     switch (index) {
@@ -46,6 +64,17 @@ class _HomeScreenState extends State<HomeScreen> {
     const primaryGreen = Color(0xFF7CF4A4);
     const lightBeige = Color(0xFFF5F0E6);
 
+    // Get current user and extract first name
+    final user = AuthService().currentUser;
+    String firstName = 'User';
+    if (user != null) {
+      if (user.displayName != null && user.displayName!.isNotEmpty) {
+        firstName = user.displayName!.split(' ').first;
+      } else if (user.email != null && user.email!.isNotEmpty) {
+        firstName = user.email!.split('@').first;
+      }
+    }
+
     return Scaffold(
       backgroundColor: backgroundWhite,
       body: SafeArea(
@@ -59,20 +88,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Tappable Avatar
                   GestureDetector(
                     onTap: () {
-                      Navigator.of(context).pushNamed(ProfileScreen.routeName);
+                      Navigator.of(context)
+                          .pushNamed(ProfileScreen.routeName)
+                          .then((_) => _loadProfileImage());
                     },
-                    child: const CircleAvatar(
-                      radius: 20,
-                      backgroundImage: AssetImage('assets/images/avatar.png'),
-                    ),
+                    child: _profileImageBase64 != null &&
+                            _profileImageBase64!.isNotEmpty
+                        ? CircleAvatar(
+                            radius: 20,
+                            backgroundImage:
+                                MemoryImage(base64Decode(_profileImageBase64!)),
+                          )
+                        : const CircleAvatar(
+                            radius: 20,
+                            backgroundImage:
+                                AssetImage('assets/images/avatar.png'),
+                          ),
                   ),
 
                   const SizedBox(width: 12),
                   // Greeting Text
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Hi, Lola',
-                      style: TextStyle(
+                      'Hi, $firstName',
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: darkText,

@@ -5,9 +5,12 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Email & Password Sign Up
-  Future<UserCredential> signUp(String email, String password) {
-    return _auth.createUserWithEmailAndPassword(
+  Future<UserCredential> signUp(
+      String email, String password, String fullName) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
         email: email, password: password);
+    await credential.user?.updateDisplayName(fullName);
+    return credential;
   }
 
   // Email & Password Login
@@ -33,4 +36,7 @@ class AuthService {
     await _auth.signOut();
     await GoogleSignIn().signOut();
   }
+
+  // Get current user
+  User? get currentUser => _auth.currentUser;
 }
