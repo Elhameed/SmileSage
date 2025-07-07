@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatScreen extends StatefulWidget {
   static const routeName = '/chat';
@@ -25,6 +26,9 @@ class _ChatScreenState extends State<ChatScreen> {
   // Context from the scan (if any)
   Map<String, dynamic>? _scanContext;
 
+  // User profile image (base64)
+  String? _profileImageBase64;
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +52,15 @@ class _ChatScreenState extends State<ChatScreen> {
               ));
         });
       }
+    });
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    // Load the user's profile image from SharedPreferences (base64)
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _profileImageBase64 = prefs.getString('profile_image');
     });
   }
 
@@ -234,10 +247,17 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                             if (msg.isUser) ...[
                               const SizedBox(width: 8),
-                              CircleAvatar(
-                                radius: 16,
-                                backgroundImage: AssetImage(userAvatar),
-                              ),
+                              _profileImageBase64 != null &&
+                                      _profileImageBase64!.isNotEmpty
+                                  ? CircleAvatar(
+                                      radius: 16,
+                                      backgroundImage: MemoryImage(
+                                          base64Decode(_profileImageBase64!)),
+                                    )
+                                  : CircleAvatar(
+                                      radius: 16,
+                                      backgroundImage: AssetImage(userAvatar),
+                                    ),
                             ],
                           ],
                         ),
