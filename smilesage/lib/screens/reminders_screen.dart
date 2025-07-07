@@ -4,6 +4,7 @@ import 'tips_screen.dart';
 import 'scan_workflow_screen.dart';
 import 'clinics_screen.dart';
 import 'learn_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RemindersScreen extends StatefulWidget {
   static const routeName = '/reminders';
@@ -18,6 +19,29 @@ class _RemindersScreenState extends State<RemindersScreen> {
   bool _bracesCleaning = false;
   bool _checkup = false;
   int _selectedIndex = 0;
+
+  static const String dailyTipsOptInKey = 'daily_tips_opt_in';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOptInStatus();
+  }
+
+  Future<void> _loadOptInStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _dailyTips = prefs.getBool(dailyTipsOptInKey) ?? false;
+    });
+  }
+
+  Future<void> _setOptInStatus(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(dailyTipsOptInKey, value);
+    setState(() {
+      _dailyTips = value;
+    });
+  }
 
   void _onNavItemTapped(int index) {
     switch (index) {
@@ -86,14 +110,14 @@ class _RemindersScreenState extends State<RemindersScreen> {
               label: 'Daily Tip Reminders',
               sublabel: 'Daily',
               value: _dailyTips,
-              onChanged: (v) => setState(() => _dailyTips = v),
+              onChanged: (v) => _setOptInStatus(v),
             ),
             const SizedBox(height: 16),
 
             // Braces Cleaning Alerts
             _ReminderToggleTile(
               icon: Icons.brush,
-              label: 'Braces Cleaning Alerts',
+              label: 'Teeth Brushing Reminders',
               sublabel: 'Daily',
               value: _bracesCleaning,
               onChanged: (v) => setState(() => _bracesCleaning = v),
@@ -243,9 +267,8 @@ class _ReminderToggleTile extends StatelessWidget {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: onChanged is ValueChanged<bool>
-              ? const Color(0xFF7CF4A4)
-              : null,
+          activeColor:
+              onChanged is ValueChanged<bool> ? const Color(0xFF7CF4A4) : null,
         ),
       ],
     );
