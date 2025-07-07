@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'screens/start_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/sign_up_screen.dart';
@@ -18,6 +19,7 @@ import 'screens/scan_history_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // ✅ IMPORTANT LINE
+  await Firebase.initializeApp();
   runApp(const DentalApp());
 }
 

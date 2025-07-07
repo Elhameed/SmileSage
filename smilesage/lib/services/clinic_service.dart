@@ -11,7 +11,7 @@ class ClinicService {
   static Future<List<Clinic>> getNearbyClinics({
     double? latitude,
     double? longitude,
-    int radius = 20000, // 20km radius
+    int radius = 25000, // 25km radius
   }) async {
     try {
       // If no coordinates provided, get current location

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "804356981173",
+    "project_id": "smilesage-cab65",
+    "storage_bucket": "smilesage-cab65.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:804356981173:android:7a1b3d7a26a252c36d19fc",
+        "android_client_info": {
+          "package_name": "com.example.smilesage"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "804356981173-0ujt4ph03e166cad9smsm72vjnt04o4o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.smilesage",
+            "certificate_hash": "3e9fb14718786b917a07336b08bf1c690186cab5"
+          }
+        },
+        {
+          "client_id": "804356981173-6s97ihpru6lna80e81vpdpbepaqarc4t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCar5A45LYjxz6Qx85uGr_c03e6165x4HA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "804356981173-6s97ihpru6lna80e81vpdpbepaqarc4t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

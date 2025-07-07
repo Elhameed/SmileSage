@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import '../services/auth_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const routeName = '/sign-up';
@@ -15,6 +16,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _passwordCtrl = TextEditingController();
   bool _agree = false;
   bool _obscure = true; // <-- for visibility toggle
+  bool _loading = false;
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _handleSignUp() async {
+    setState(() => _loading = true);
+    try {
+      await AuthService().signUp(
+        _emailCtrl.text.trim(),
+        _passwordCtrl.text.trim(),
+      );
+      // Navigate to home or show success
+      Navigator.of(context).pop(); // or pushReplacement to home
+    } catch (e) {
+      _showError(context, e.toString());
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _handleGoogleSignUp() async {
+    setState(() => _loading = true);
+    try {
+      await AuthService().signInWithGoogle();
+      Navigator.of(context).pop(); // or pushReplacement to home
+    } catch (e) {
+      _showError(context, e.toString());
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -52,150 +88,161 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
+        child: Stack(
           children: [
-            const SizedBox(height: 10),
-            // Full Name
-            TextField(
-              controller: _nameCtrl,
-              decoration: InputDecoration(
-                hintText: 'Full Name',
-                hintStyle: const TextStyle(fontSize: 14),
-                filled: true,
-                fillColor: inputFill,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24), // increased gap
-            // Email
-            TextField(
-              controller: _emailCtrl,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                hintText: 'Email Address',
-                hintStyle: const TextStyle(fontSize: 14),
-                filled: true,
-                fillColor: inputFill,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Password with visibility toggle
-            TextField(
-              controller: _passwordCtrl,
-              obscureText: _obscure,
-              decoration: InputDecoration(
-                hintText: 'Password',
-                hintStyle: const TextStyle(fontSize: 14),
-                filled: true,
-                fillColor: inputFill,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscure ? Icons.visibility_off : Icons.visibility,
-                  ),
-                  onPressed: () => setState(() => _obscure = !_obscure),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Terms checkbox
-            Row(
+            Column(
               children: [
-                Checkbox(
-                  value: _agree,
-                  onChanged: (v) => setState(() => _agree = v!),
+                const SizedBox(height: 10),
+                // Full Name
+                TextField(
+                  controller: _nameCtrl,
+                  decoration: InputDecoration(
+                    hintText: 'Full Name',
+                    hintStyle: const TextStyle(fontSize: 14),
+                    filled: true,
+                    fillColor: inputFill,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 4),
-                const Expanded(
-                  child: Text('I agree with the terms and conditions'),
+                const SizedBox(height: 24), // increased gap
+                // Email
+                TextField(
+                  controller: _emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    hintText: 'Email Address',
+                    hintStyle: const TextStyle(fontSize: 14),
+                    filled: true,
+                    fillColor: inputFill,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
+                const SizedBox(height: 24),
+
+                // Password with visibility toggle
+                TextField(
+                  controller: _passwordCtrl,
+                  obscureText: _obscure,
+                  decoration: InputDecoration(
+                    hintText: 'Password',
+                    hintStyle: const TextStyle(fontSize: 14),
+                    filled: true,
+                    fillColor: inputFill,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscure ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onPressed: () => setState(() => _obscure = !_obscure),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Terms checkbox
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _agree,
+                      onChanged: (v) => setState(() => _agree = v!),
+                    ),
+                    const SizedBox(width: 4),
+                    const Expanded(
+                      child: Text('I agree with the terms and conditions'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Sign Up button
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _agree && !_loading ? _handleSignUp : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryGreen,
+                      shape: const StadiumBorder(),
+                      elevation: 4,
+                    ),
+                    child: _loading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text(
+                            'Sign Up',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: navyText,
+                            ),
+                          ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+                const Text('or'),
+                const SizedBox(height: 16),
+
+                // Google sign-up
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton.icon(
+                    onPressed: _loading ? null : _handleGoogleSignUp,
+                    icon: Image.asset(
+                      'assets/images/google_icon.png',
+                      width: 24,
+                      height: 24,
+                    ),
+                    label: const Text(
+                      'Sign up with Google',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: navyText,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey.shade200,
+                      shape: const StadiumBorder(),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+
+                const Spacer(),
+
+                // Bottom link
+                GestureDetector(
+                  onTap: () => Navigator.of(
+                    context,
+                  ).pushReplacementNamed(LoginScreen.routeName),
+                  child: Text(
+                    'Already have an account? Log in',
+                    style: TextStyle(color: linkText),
+                  ),
+                ),
+                const SizedBox(height: 24),
               ],
             ),
-            const SizedBox(height: 24),
-
-            // Sign Up button
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: _agree
-                    ? () {
-                        // TODO: call your sign-up logic
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryGreen,
-                  shape: const StadiumBorder(),
-                  elevation: 4,
-                ),
-                child: const Text(
-                  'Sign Up',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: navyText,
-                  ),
+            if (_loading)
+              Container(
+                color: Colors.black.withOpacity(0.1),
+                child: const Center(
+                  child: CircularProgressIndicator(),
                 ),
               ),
-            ),
-
-            const SizedBox(height: 16),
-            const Text('or'),
-            const SizedBox(height: 16),
-
-            // Google sign-up
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Google sign-up
-                },
-                icon: Image.asset(
-                  'assets/images/google_icon.png',
-                  width: 24,
-                  height: 24,
-                ),
-                label: const Text(
-                  'Sign up with Google',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: navyText,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey.shade200,
-                  shape: const StadiumBorder(),
-                  elevation: 0,
-                ),
-              ),
-            ),
-
-            const Spacer(),
-
-            // Bottom link
-            GestureDetector(
-              onTap: () => Navigator.of(
-                context,
-              ).pushReplacementNamed(LoginScreen.routeName),
-              child: Text(
-                'Already have an account? Log in',
-                style: TextStyle(color: linkText),
-              ),
-            ),
-            const SizedBox(height: 24),
           ],
         ),
       ),
