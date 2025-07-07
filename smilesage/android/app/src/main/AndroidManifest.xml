@@ -38,6 +38,6 @@
         <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyACN9hbRBevFBV07sUQgVGEey3U_CjVAK0" />
+            android:value="AIzaSyAAZIGTY9QdGeZB_N4oyqzjrcazCJ_IrmQ" />
     </application>
 </manifest>

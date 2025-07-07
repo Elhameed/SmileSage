@@ -5,7 +5,7 @@ import 'location_service.dart';
 
 class ClinicService {
   // Replace with your actual Google Places API key
-  static const String _apiKey = 'AIzaSyACN9hbRBevFBV07sUQgVGEey3U_CjVAK0';
+  static const String _apiKey = 'AIzaSyAAZIGTY9QdGeZB_N4oyqzjrcazCJ_IrmQ';
   static const String _baseUrl = 'https://maps.googleapis.com/maps/api/place';
 
   static Future<List<Clinic>> getNearbyClinics({
