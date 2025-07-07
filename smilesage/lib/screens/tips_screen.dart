@@ -69,14 +69,15 @@ class _TipsScreenState extends State<TipsScreen>
   final List<Map<String, dynamic>> _badges = [
     {'min': 0, 'max': 3, 'label': 'New Kid', 'icon': Icons.emoji_emotions},
     {'min': 4, 'max': 7, 'label': 'Cool Kid', 'icon': Icons.star},
-    {'min': 8, 'max': 14, 'label': 'Wonderful Kid', 'icon': Icons.emoji_events},
+    {'min': 8, 'max': 14, 'label': 'Rising Star', 'icon': Icons.emoji_events},
     {'min': 15, 'max': 30, 'label': 'Streak Pro', 'icon': Icons.military_tech},
     {
       'min': 31,
-      'max': 999,
+      'max': 120,
       'label': 'Iron Will',
       'icon': Icons.workspace_premium
     },
+    {'min': 121, 'max': 365, 'label': 'Smile Sage', 'icon': Icons.auto_awesome},
   ];
 
   Map<String, dynamic> get _currentBadge {
@@ -443,48 +444,49 @@ class _TipsScreenState extends State<TipsScreen>
       builder: (ctx) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Center(
-                child: Text(
-                  'All Badges',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Center(
+                  child: Text(
+                    'All Badges',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              ..._badges.map((badge) {
-                final isCurrent = badge['label'] == _currentBadge['label'];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: isCurrent ? Colors.amber.withOpacity(0.15) : null,
-                    borderRadius: BorderRadius.circular(12),
-                    border: isCurrent
-                        ? Border.all(color: Colors.amber, width: 2)
-                        : null,
-                  ),
-                  child: ListTile(
-                    leading: Icon(badge['icon'],
-                        color: isCurrent ? Colors.amber : Colors.grey,
-                        size: 32),
-                    title: Text(
-                      badge['label'],
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isCurrent ? Colors.amber[900] : Colors.black,
-                      ),
+                const SizedBox(height: 16),
+                ..._badges.map((badge) {
+                  final isCurrent = badge['label'] == _currentBadge['label'];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: isCurrent ? Colors.amber.withOpacity(0.15) : null,
+                      borderRadius: BorderRadius.circular(12),
+                      border: isCurrent
+                          ? Border.all(color: Colors.amber, width: 2)
+                          : null,
                     ),
-                    subtitle:
-                        Text('Streak: ${badge['min']} - ${badge['max']} days'),
-                    trailing: isCurrent
-                        ? const Icon(Icons.check_circle, color: Colors.amber)
-                        : null,
-                  ),
-                );
-              }).toList(),
-            ],
+                    child: ListTile(
+                      leading: Icon(badge['icon'],
+                          color: isCurrent ? Colors.amber : Colors.grey,
+                          size: 32),
+                      title: Text(
+                        badge['label'],
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: isCurrent ? Colors.amber[900] : Colors.black,
+                        ),
+                      ),
+                      subtitle: Text(
+                          'Streak: ${badge['min']} - ${badge['max']} days'),
+                      trailing: isCurrent
+                          ? const Icon(Icons.check_circle, color: Colors.amber)
+                          : null,
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
           ),
         );
       },
