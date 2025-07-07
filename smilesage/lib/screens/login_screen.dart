@@ -93,6 +93,74 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _showForgotPasswordDialog() async {
+    final emailController = TextEditingController();
+    String? errorText;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Reset Password'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      errorText: errorText,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final email = emailController.text.trim();
+                    if (email.isEmpty) {
+                      setState(() => errorText = 'Email is required');
+                      return;
+                    } else if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+')
+                        .hasMatch(email)) {
+                      setState(() => errorText = 'Enter a valid email address');
+                      return;
+                    }
+                    try {
+                      await FirebaseAuth.instance
+                          .sendPasswordResetEmail(email: email);
+                      Navigator.of(context).pop();
+                      _showError(context,
+                          'Password reset email sent! Check your inbox.');
+                    } on FirebaseAuthException catch (e) {
+                      String message = 'Failed to send reset email.';
+                      if (e.code == 'user-not-found') {
+                        message = 'No user found for that email.';
+                      } else if (e.code == 'invalid-email') {
+                        message = 'Invalid email address.';
+                      }
+                      setState(() => errorText = message);
+                    } catch (e) {
+                      setState(
+                          () => errorText = 'An unexpected error occurred.');
+                    }
+                  },
+                  child: const Text('Send'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -186,9 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // TODO: Forgot password flow
-                    },
+                    onPressed: _showForgotPasswordDialog,
                     child: Text(
                       'Forgot Password?',
                       style: TextStyle(color: linkText),
