@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:flutter/animation.dart';
 
 class TipsScreen extends StatefulWidget {
   static const routeName = '/tips';
@@ -18,7 +19,8 @@ class TipsScreen extends StatefulWidget {
   State<TipsScreen> createState() => _TipsScreenState();
 }
 
-class _TipsScreenState extends State<TipsScreen> {
+class _TipsScreenState extends State<TipsScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedIndex = 1; // Tips tab
 
   // Brushing log and streak state
@@ -246,18 +248,7 @@ class _TipsScreenState extends State<TipsScreen> {
     }
   }
 
-  Future<void> _markBrushedToday() async {
-    setState(() => _isMarkingBrushed = true);
-    final now = DateTime.now();
-    final log = BrushingLog(
-        date: DateTime(now.year, now.month, now.day),
-        photoPath: _brushedPhoto?.path);
-    await saveBrushingLog(log);
-    setState(() {
-      _isMarkingBrushed = false;
-      _brushedPhoto = null;
-    });
-  }
+  // Remove points system variables and functions
 
   bool _dailyTipsOptIn = false;
   bool _showOptInBanner = true;
@@ -270,7 +261,44 @@ class _TipsScreenState extends State<TipsScreen> {
     });
   }
 
+  late AnimationController _badgeController;
+  late Animation<double> _badgeScaleAnimation;
+  Map<String, dynamic>? _previousBadge;
+
+  @override
+  void initState() {
+    super.initState();
+    loadBrushingLogs();
+    fetchDailyTips();
+    _loadOptInStatus();
+    // Badge animation setup
+    _badgeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _badgeScaleAnimation = Tween<double>(begin: 1.0, end: 1.25)
+        .chain(CurveTween(curve: Curves.elasticOut))
+        .animate(_badgeController);
+    _previousBadge = _currentBadge;
+  }
+
+  @override
+  void dispose() {
+    _badgeController.dispose();
+    super.dispose();
+  }
+
+  void _checkBadgeAnimation() {
+    final current = _currentBadge;
+    if (_previousBadge == null ||
+        current['label'] != _previousBadge!['label']) {
+      _badgeController.forward(from: 0.0);
+      _previousBadge = current;
+    }
+  }
+
   Widget _buildBrushingTracker() {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkBadgeAnimation());
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -282,7 +310,16 @@ class _TipsScreenState extends State<TipsScreen> {
         const SizedBox(height: 12),
         Row(
           children: [
-            Icon(_currentBadge['icon'], color: Colors.amber, size: 36),
+            GestureDetector(
+              onTap: () {
+                _showBadgeListModal(context);
+              },
+              child: ScaleTransition(
+                scale: _badgeScaleAnimation,
+                child:
+                    Icon(_currentBadge['icon'], color: Colors.amber, size: 36),
+              ),
+            ),
             const SizedBox(width: 12),
             Text(
               '${_currentBadge['label']}',
@@ -359,13 +396,22 @@ class _TipsScreenState extends State<TipsScreen> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    loadBrushingLogs();
-    fetchDailyTips();
-    _loadOptInStatus();
+  Future<void> _markBrushedToday() async {
+    setState(() => _isMarkingBrushed = true);
+    final now = DateTime.now();
+    final log = BrushingLog(
+        date: DateTime(now.year, now.month, now.day),
+        photoPath: _brushedPhoto?.path);
+    await saveBrushingLog(log);
+    // Remove points system variables and functions
+    setState(() {
+      _isMarkingBrushed = false;
+      _brushedPhoto = null;
+    });
   }
+
+  // Call this when user views/completes daily tips (e.g., after tips are loaded)
+  // Remove points system variables and functions
 
   void _onNavItemTapped(int index) {
     switch (index) {
@@ -386,6 +432,63 @@ class _TipsScreenState extends State<TipsScreen> {
         break;
     }
     setState(() => _selectedIndex = index);
+  }
+
+  void _showBadgeListModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Center(
+                child: Text(
+                  'All Badges',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ..._badges.map((badge) {
+                final isCurrent = badge['label'] == _currentBadge['label'];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: isCurrent ? Colors.amber.withOpacity(0.15) : null,
+                    borderRadius: BorderRadius.circular(12),
+                    border: isCurrent
+                        ? Border.all(color: Colors.amber, width: 2)
+                        : null,
+                  ),
+                  child: ListTile(
+                    leading: Icon(badge['icon'],
+                        color: isCurrent ? Colors.amber : Colors.grey,
+                        size: 32),
+                    title: Text(
+                      badge['label'],
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isCurrent ? Colors.amber[900] : Colors.black,
+                      ),
+                    ),
+                    subtitle:
+                        Text('Streak: ${badge['min']} - ${badge['max']} days'),
+                    trailing: isCurrent
+                        ? const Icon(Icons.check_circle, color: Colors.amber)
+                        : null,
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -527,45 +630,6 @@ class _TipsScreenState extends State<TipsScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Points Earned
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: iconBg,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.monetization_on, color: headingText),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Points Earned',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: headingText,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Earned 150 points for completing your daily tips!',
-                        style: TextStyle(fontSize: 14, color: subtitleText),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
             // Badge Unlocked
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -577,25 +641,26 @@ class _TipsScreenState extends State<TipsScreen> {
                     color: iconBg,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.emoji_events, color: headingText),
+                  child: Icon(_currentBadge['icon'], color: headingText),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
-                        'Badge Unlocked',
-                        style: TextStyle(
+                        'Badge Unlocked: ${_currentBadge['label']}',
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: headingText,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        "Unlocked the 'Brace Master' badge for consistent care!",
-                        style: TextStyle(fontSize: 14, color: subtitleText),
+                        'You unlocked the "${_currentBadge['label']}" badge for your brushing streak! Keep going to reach the next milestone.',
+                        style:
+                            const TextStyle(fontSize: 14, color: subtitleText),
                       ),
                     ],
                   ),
