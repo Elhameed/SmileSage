@@ -516,43 +516,6 @@ class _TipsScreenState extends State<TipsScreen> {
             _buildBrushingTracker(),
             const SizedBox(height: 24),
 
-            // Streak Tracker
-            const Text(
-              'Streak Tracker',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: headingText,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Daily Streak',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: headingText,
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Progress bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: 3 / 5,
-                minHeight: 8,
-                backgroundColor: lightGray,
-                color: headingText,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              '3/5 Days',
-              style: TextStyle(fontSize: 14, color: subtitleText),
-            ),
-
-            const SizedBox(height: 24),
-
             // Rewards
             const Text(
               'Rewards',
