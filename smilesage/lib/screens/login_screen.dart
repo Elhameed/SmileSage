@@ -3,6 +3,7 @@ import 'sign_up_screen.dart';
 import '../services/auth_service.dart';
 import 'permissions_screen.dart';
 import 'home_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
@@ -17,6 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordCtrl = TextEditingController();
   bool _obscure = true;
   bool _loading = false;
+  String? _emailError;
+  String? _passwordError;
 
   void _showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -25,19 +28,50 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _emailError = null;
+      _passwordError = null;
+    });
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text.trim();
+    bool hasError = false;
+    if (email.isEmpty) {
+      setState(() => _emailError = 'Email is required');
+      hasError = true;
+    } else if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+').hasMatch(email)) {
+      setState(() => _emailError = 'Enter a valid email address');
+      hasError = true;
+    }
+    if (password.isEmpty) {
+      setState(() => _passwordError = 'Password is required');
+      hasError = true;
+    }
+    if (hasError) {
+      setState(() => _loading = false);
+      return;
+    }
     try {
-      final credential = await AuthService().signIn(
-        _emailCtrl.text.trim(),
-        _passwordCtrl.text.trim(),
-      );
+      final credential = await AuthService().signIn(email, password);
       if (credential.additionalUserInfo?.isNewUser == true) {
         Navigator.of(context).pushReplacementNamed(PermissionsScreen.routeName);
       } else {
         Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
       }
+    } on FirebaseAuthException catch (e) {
+      String message = 'Login failed';
+      if (e.code == 'user-not-found') {
+        message = 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        message = 'Incorrect password.';
+      } else if (e.code == 'invalid-email') {
+        message = 'Invalid email address.';
+      } else if (e.code == 'user-disabled') {
+        message = 'This user has been disabled.';
+      }
+      _showError(context, message);
     } catch (e) {
-      _showError(context, e.toString());
+      _showError(context, 'An unexpected error occurred.');
     } finally {
       setState(() => _loading = false);
     }
@@ -120,6 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
+                    errorText: _emailError,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -143,6 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       onPressed: () => setState(() => _obscure = !_obscure),
                     ),
+                    errorText: _passwordError,
                   ),
                 ),
 

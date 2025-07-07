@@ -3,6 +3,7 @@ import 'login_screen.dart';
 import '../services/auth_service.dart';
 import 'permissions_screen.dart';
 import 'home_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const routeName = '/sign-up';
@@ -19,6 +20,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _agree = false;
   bool _obscure = true; // <-- for visibility toggle
   bool _loading = false;
+  String? _nameError;
+  String? _emailError;
+  String? _passwordError;
 
   void _showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -27,20 +31,62 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _handleSignUp() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _nameError = null;
+      _emailError = null;
+      _passwordError = null;
+    });
+    final name = _nameCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text.trim();
+    bool hasError = false;
+    if (name.isEmpty) {
+      setState(() => _nameError = 'Full name is required');
+      hasError = true;
+    }
+    if (email.isEmpty) {
+      setState(() => _emailError = 'Email is required');
+      hasError = true;
+    } else if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+').hasMatch(email)) {
+      setState(() => _emailError = 'Enter a valid email address');
+      hasError = true;
+    }
+    if (password.isEmpty) {
+      setState(() => _passwordError = 'Password is required');
+      hasError = true;
+    } else if (password.length < 6) {
+      setState(() => _passwordError = 'Password must be at least 6 characters');
+      hasError = true;
+    }
+    if (!_agree) {
+      _showError(context, 'You must agree to the terms and conditions.');
+      setState(() => _loading = false);
+      return;
+    }
+    if (hasError) {
+      setState(() => _loading = false);
+      return;
+    }
     try {
-      final credential = await AuthService().signUp(
-        _emailCtrl.text.trim(),
-        _passwordCtrl.text.trim(),
-        _nameCtrl.text.trim(),
-      );
+      final credential = await AuthService().signUp(email, password, name);
       if (credential.additionalUserInfo?.isNewUser == true) {
         Navigator.of(context).pushReplacementNamed(PermissionsScreen.routeName);
       } else {
         Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
       }
+    } on FirebaseAuthException catch (e) {
+      String message = 'Sign up failed';
+      if (e.code == 'email-already-in-use') {
+        message = 'This email is already in use.';
+      } else if (e.code == 'invalid-email') {
+        message = 'Invalid email address.';
+      } else if (e.code == 'weak-password') {
+        message = 'Password is too weak.';
+      }
+      _showError(context, message);
     } catch (e) {
-      _showError(context, e.toString());
+      _showError(context, 'An unexpected error occurred.');
     } finally {
       setState(() => _loading = false);
     }
@@ -115,6 +161,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
+                    errorText: _nameError,
                   ),
                 ),
                 const SizedBox(height: 24), // increased gap
@@ -131,6 +178,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
+                    errorText: _emailError,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -154,6 +202,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       onPressed: () => setState(() => _obscure = !_obscure),
                     ),
+                    errorText: _passwordError,
                   ),
                 ),
                 const SizedBox(height: 20),
