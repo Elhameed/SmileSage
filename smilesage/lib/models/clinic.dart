@@ -30,6 +30,15 @@ class Clinic {
   });
 
   factory Clinic.fromJson(Map<String, dynamic> json) {
+    // Google Places photo URL construction
+    String? imageUrl;
+    if (json['photos'] != null && (json['photos'] as List).isNotEmpty) {
+      final photoRef = json['photos'][0]['photo_reference'];
+      // Use your actual API key here or pass it as a parameter if needed
+      const apiKey = 'AIzaSyAAZIGTY9QdGeZB_N4oyqzjrcazCJ_IrmQ';
+      imageUrl =
+          'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=$photoRef&key=$apiKey';
+    }
     return Clinic(
       id: json['place_id'] ?? json['id'] ?? '',
       name: json['name'] ?? '',
@@ -40,6 +49,7 @@ class Clinic {
       website: json['website'],
       rating: json['rating']?.toDouble(),
       reviewCount: json['user_ratings_total'],
+      imagePath: imageUrl, // Will be null if no photo
       services: json['types']?.cast<String>(),
       isOpen: json['opening_hours']?['open_now'] ?? true,
     );

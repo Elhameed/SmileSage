@@ -45,10 +45,24 @@ class ClinicDetailScreen extends StatelessWidget {
                   borderRadius: const BorderRadius.vertical(
                     bottom: Radius.circular(16),
                   ),
-                  child: Image.asset(
-                    clinic.imagePath!,
-                    fit: BoxFit.cover,
-                  ),
+                  child: clinic.imagePath!.startsWith('http')
+                      ? Image.network(
+                          clinic.imagePath!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                            color: const Color(0xFFE8F4EC),
+                            child: const Icon(
+                              Icons.local_hospital,
+                              color: Color(0xFF7CA78C),
+                              size: 80,
+                            ),
+                          ),
+                        )
+                      : Image.asset(
+                          clinic.imagePath!,
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
 
