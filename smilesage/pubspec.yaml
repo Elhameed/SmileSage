@@ -52,6 +52,7 @@ dependencies:
   permission_handler: ^11.0.1
   open_file: ^3.3.2
   downloads_path_provider_28: ^0.1.2
+  flutter_local_notifications: ^16.3.2
 
 
 dev_dependencies:

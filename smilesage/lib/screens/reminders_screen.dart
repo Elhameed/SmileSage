@@ -5,6 +5,8 @@ import 'scan_workflow_screen.dart';
 import 'clinics_screen.dart';
 import 'learn_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/notification_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class RemindersScreen extends StatefulWidget {
   static const routeName = '/reminders';
@@ -20,19 +22,45 @@ class _RemindersScreenState extends State<RemindersScreen> {
   bool _checkup = false;
   int _selectedIndex = 0;
 
+  TimeOfDay _dailyTipsTime = const TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay _brushingTime = const TimeOfDay(hour: 20, minute: 0);
+
   static const String dailyTipsOptInKey = 'daily_tips_opt_in';
+  static const String dailyTipsTimeKey = 'daily_tips_time';
+  static const String brushingTimeKey = 'brushing_time';
+  static const String brushingOptInKey = 'brushing_opt_in';
 
   @override
   void initState() {
     super.initState();
     _loadOptInStatus();
+    _loadTimes();
+    NotificationService().init();
   }
 
   Future<void> _loadOptInStatus() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _dailyTips = prefs.getBool(dailyTipsOptInKey) ?? false;
+      _bracesCleaning = prefs.getBool(brushingOptInKey) ?? false;
     });
+  }
+
+  Future<void> _loadTimes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final tipsTimeStr = prefs.getString(dailyTipsTimeKey);
+    final brushingTimeStr = prefs.getString(brushingTimeKey);
+    if (tipsTimeStr != null) {
+      final parts = tipsTimeStr.split(':');
+      _dailyTipsTime =
+          TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+    }
+    if (brushingTimeStr != null) {
+      final parts = brushingTimeStr.split(':');
+      _brushingTime =
+          TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+    }
+    setState(() {});
   }
 
   Future<void> _setOptInStatus(bool value) async {
@@ -41,6 +69,66 @@ class _RemindersScreenState extends State<RemindersScreen> {
     setState(() {
       _dailyTips = value;
     });
+    if (value) {
+      await NotificationService().scheduleDailyNotification(
+        id: 1,
+        time: _dailyTipsTime,
+        title: 'Daily Dental Tip',
+        body: 'Check out your daily dental tip in SmileSage!',
+      );
+    } else {
+      await NotificationService().cancelNotification(1);
+    }
+  }
+
+  Future<void> _setDailyTipsTime(TimeOfDay time) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(dailyTipsTimeKey, '${time.hour}:${time.minute}');
+    setState(() {
+      _dailyTipsTime = time;
+    });
+    if (_dailyTips) {
+      await NotificationService().scheduleDailyNotification(
+        id: 1,
+        time: time,
+        title: 'Daily Dental Tip',
+        body: 'Check out your daily dental tip in SmileSage!',
+      );
+    }
+  }
+
+  Future<void> _setBrushingTime(TimeOfDay time) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(brushingTimeKey, '${time.hour}:${time.minute}');
+    setState(() {
+      _brushingTime = time;
+    });
+    if (_bracesCleaning) {
+      await NotificationService().scheduleDailyNotification(
+        id: 2,
+        time: time,
+        title: 'Brushing Reminder',
+        body: 'Time to brush your teeth! Keep your smile healthy.',
+      );
+    }
+  }
+
+  Future<void> _setBracesCleaning(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(brushingOptInKey, value);
+    setState(() {
+      _bracesCleaning = value;
+    });
+    if (value) {
+      await NotificationService().scheduleDailyNotification(
+        id: 2,
+        time: _brushingTime,
+        title: 'Brushing Reminder',
+        body: 'Time to brush your teeth! Keep your smile healthy.',
+      );
+    } else {
+      await NotificationService().cancelNotification(2);
+    }
   }
 
   void _onNavItemTapped(int index) {
@@ -105,22 +193,62 @@ class _RemindersScreenState extends State<RemindersScreen> {
             const SizedBox(height: 16),
 
             // Daily Tip Reminders
-            _ReminderToggleTile(
-              icon: Icons.notifications,
-              label: 'Daily Tip Reminders',
-              sublabel: 'Daily',
-              value: _dailyTips,
-              onChanged: (v) => _setOptInStatus(v),
+            Row(
+              children: [
+                Expanded(
+                  child: _ReminderToggleTile(
+                    icon: Icons.notifications,
+                    label: 'Daily Tip Reminders',
+                    sublabel: 'Daily',
+                    value: _dailyTips,
+                    onChanged: (v) => _setOptInStatus(v),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.access_time),
+                  onPressed: _dailyTips
+                      ? () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: _dailyTipsTime,
+                          );
+                          if (picked != null) {
+                            await _setDailyTipsTime(picked);
+                          }
+                        }
+                      : null,
+                ),
+              ],
             ),
             const SizedBox(height: 16),
 
             // Braces Cleaning Alerts
-            _ReminderToggleTile(
-              icon: Icons.brush,
-              label: 'Teeth Brushing Reminders',
-              sublabel: 'Daily',
-              value: _bracesCleaning,
-              onChanged: (v) => setState(() => _bracesCleaning = v),
+            Row(
+              children: [
+                Expanded(
+                  child: _ReminderToggleTile(
+                    icon: Icons.brush,
+                    label: 'Teeth Brushing Reminders',
+                    sublabel: 'Daily',
+                    value: _bracesCleaning,
+                    onChanged: (v) => _setBracesCleaning(v),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.access_time),
+                  onPressed: _bracesCleaning
+                      ? () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: _brushingTime,
+                          );
+                          if (picked != null) {
+                            await _setBrushingTime(picked);
+                          }
+                        }
+                      : null,
+                ),
+              ],
             ),
             const SizedBox(height: 16),
 
@@ -169,6 +297,43 @@ class _RemindersScreenState extends State<RemindersScreen> {
               onTap: () {
                 // TODO: Delete logic
               },
+            ),
+            const SizedBox(height: 32),
+            Center(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.notifications_active),
+                label: const Text('Test Notification'),
+                onPressed: () async {
+                  await NotificationService()
+                      .flutterLocalNotificationsPlugin
+                      .show(
+                        999,
+                        'Test Notification',
+                        'This is a test notification from SmileSage.',
+                        const NotificationDetails(
+                          android: AndroidNotificationDetails(
+                            'smilesage_channel',
+                            'SmileSage Reminders',
+                            channelDescription:
+                                'Reminders for daily tips and brushing',
+                            importance: Importance.max,
+                            priority: Priority.high,
+                          ),
+                          iOS: DarwinNotificationDetails(),
+                        ),
+                      );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.timer),
+                label: const Text('Test 10s Scheduled Notification'),
+                onPressed: () async {
+                  await NotificationService().scheduleQuickTestNotification();
+                },
+              ),
             ),
           ],
         ),

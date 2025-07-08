@@ -16,10 +16,52 @@ import 'screens/learn_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/tips_screen.dart';
 import 'screens/scan_history_screen.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:io';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // ✅ IMPORTANT LINE
+  WidgetsFlutterBinding.ensureInitialized();
+  tz.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('Africa/Maputo'));
+  print('tz.local: ' + tz.local.toString());
+  print(
+      'tz.TZDateTime.now(tz.local): ' + tz.TZDateTime.now(tz.local).toString());
+  print('System time: ' + DateTime.now().toString());
+  print('TimeZone location: ' +
+      DateTime.now().timeZoneName +
+      ' / offset: ' +
+      DateTime.now().timeZoneOffset.toString());
   await Firebase.initializeApp();
+
+  // Initialize local notifications
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  final DarwinInitializationSettings initializationSettingsIOS =
+      DarwinInitializationSettings();
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
+  );
+
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  // Request permissions (especially for iOS and Android 13+)
+  if (Platform.isIOS) {
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+  }
+
   runApp(const DentalApp());
 }
 

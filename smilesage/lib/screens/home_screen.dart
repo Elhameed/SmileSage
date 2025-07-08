@@ -118,16 +118,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  // Icon 1 (e.g., streak icon)
-                  IconButton(
-                    icon: const Icon(
-                      Icons.local_fire_department,
-                      color: darkText,
-                    ),
-                    onPressed: () {
-                      // TODO: handle streak action
-                    },
-                  ),
                   // Notification Bell icon
                   IconButton(
                     icon: const Icon(Icons.notifications_none, color: darkText),
