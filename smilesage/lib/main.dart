@@ -21,6 +21,9 @@ import 'dart:io';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
@@ -78,6 +81,7 @@ class DentalApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
       ),
       initialRoute: StartScreen.routeName,
+      navigatorObservers: [routeObserver],
       routes: {
         StartScreen.routeName: (_) => const StartScreen(),
         WelcomeScreen.routeName: (_) => const WelcomeScreen(),
