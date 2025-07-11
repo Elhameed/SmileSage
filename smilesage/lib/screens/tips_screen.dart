@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/animation.dart';
+import '../main.dart'; // for routeObserver
 
 class TipsScreen extends StatefulWidget {
   static const routeName = '/tips';
@@ -20,7 +21,7 @@ class TipsScreen extends StatefulWidget {
 }
 
 class _TipsScreenState extends State<TipsScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, RouteAware {
   int _selectedIndex = 1; // Tips tab
 
   // Brushing log and streak state
@@ -388,9 +389,23 @@ class _TipsScreenState extends State<TipsScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     _badgeController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Called when coming back to this screen
+    _loadOptInStatus();
+    super.didPopNext();
   }
 
   void _checkBadgeAnimation() {

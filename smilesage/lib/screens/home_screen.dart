@@ -399,17 +399,19 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                               const SizedBox(height: 12),
                               Row(
                                 children: [
-                                  Text(
-                                    _brushingStreak > 0
-                                        ? '${_brushingStreak}-day streak'
-                                        : 'No streak yet',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: Color(0xFF4CAF50), // green
-                                      fontWeight: FontWeight.w500,
+                                  Expanded(
+                                    child: Text(
+                                      _brushingStreak > 0
+                                          ? '${_brushingStreak}-day streak'
+                                          : 'No streak yet',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Color(0xFF4CAF50), // green
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  const Spacer(),
                                   ElevatedButton(
                                     onPressed: () {
                                       Navigator.of(context)
@@ -429,6 +431,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                         fontWeight: FontWeight.w500,
                                         color: Colors.black,
                                       ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
