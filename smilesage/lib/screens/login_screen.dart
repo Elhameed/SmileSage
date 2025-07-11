@@ -194,157 +194,163 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 32), // extra breathing room
-                // Welcome text
-                const Text(
-                  'Welcome back',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 24),
-
-                // Email
-                TextField(
-                  controller: _emailCtrl,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: 'Email Address',
-                    hintStyle: const TextStyle(fontSize: 14),
-                    filled: true,
-                    fillColor: inputFill,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 32), // extra breathing room
+                    // Welcome text
+                    const Text(
+                      'Welcome back',
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
-                    errorText: _emailError,
-                  ),
-                ),
-                const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                // Password
-                TextField(
-                  controller: _passwordCtrl,
-                  obscureText: _obscure,
-                  decoration: InputDecoration(
-                    hintText: 'Password',
-                    hintStyle: const TextStyle(fontSize: 14),
-                    filled: true,
-                    fillColor: inputFill,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscure ? Icons.visibility_off : Icons.visibility,
+                    // Email
+                    TextField(
+                      controller: _emailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        hintText: 'Email Address',
+                        hintStyle: const TextStyle(fontSize: 14),
+                        filled: true,
+                        fillColor: inputFill,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        errorText: _emailError,
                       ),
-                      onPressed: () => setState(() => _obscure = !_obscure),
                     ),
-                    errorText: _passwordError,
-                  ),
-                ),
+                    const SizedBox(height: 24),
 
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: _showForgotPasswordDialog,
-                    child: Text(
-                      'Forgot Password?',
-                      style: TextStyle(color: linkText),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-                // Login button
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _loading ? null : _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryGreen,
-                      shape: const StadiumBorder(),
-                      elevation: 4,
-                    ),
-                    child: _loading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text(
-                            'Login',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: navyText,
-                            ),
+                    // Password
+                    TextField(
+                      controller: _passwordCtrl,
+                      obscureText: _obscure,
+                      decoration: InputDecoration(
+                        hintText: 'Password',
+                        hintStyle: const TextStyle(fontSize: 14),
+                        filled: true,
+                        fillColor: inputFill,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscure ? Icons.visibility_off : Icons.visibility,
                           ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-                const Center(child: Text('Or')),
-                const SizedBox(height: 16),
-
-                // Google Continue
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton.icon(
-                    onPressed: _loading ? null : _handleGoogleLogin,
-                    icon: Image.asset(
-                      'assets/images/google_icon.png',
-                      width: 24,
-                      height: 24,
-                    ),
-                    label: const Text(
-                      'Continue with Google',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: navyText,
+                          onPressed: () => setState(() => _obscure = !_obscure),
+                        ),
+                        errorText: _passwordError,
                       ),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade200,
-                      shape: const StadiumBorder(),
-                      elevation: 0,
-                    ),
-                  ),
-                ),
 
-                const Spacer(),
-
-                // Bottom link
-                Center(
-                  child: GestureDetector(
-                    onTap: () => Navigator.of(
-                      context,
-                    ).pushReplacementNamed(SignUpScreen.routeName),
-                    child: Text(
-                      "Don't have an account? Sign up",
-                      style: TextStyle(color: linkText),
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _showForgotPasswordDialog,
+                        child: Text(
+                          'Forgot Password?',
+                          style: TextStyle(color: linkText),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
-            if (_loading)
-              Container(
-                color: Colors.black.withOpacity(0.1),
-                child: const Center(
-                  child: CircularProgressIndicator(),
+
+                    const SizedBox(height: 24),
+                    // Login button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: _loading ? null : _handleLogin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryGreen,
+                          shape: const StadiumBorder(),
+                          elevation: 4,
+                        ),
+                        child: _loading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: navyText,
+                                ),
+                              ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                    const Center(child: Text('Or')),
+                    const SizedBox(height: 16),
+
+                    // Google Continue
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton.icon(
+                        onPressed: _loading ? null : _handleGoogleLogin,
+                        icon: Image.asset(
+                          'assets/images/google_icon.png',
+                          width: 24,
+                          height: 24,
+                        ),
+                        label: const Text(
+                          'Continue with Google',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: navyText,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey.shade200,
+                          shape: const StadiumBorder(),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Bottom link
+                    Center(
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(
+                          context,
+                        ).pushReplacementNamed(SignUpScreen.routeName),
+                        child: Text(
+                          "Don't have an account? Sign up",
+                          style: TextStyle(color: linkText),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-          ],
+              if (_loading)
+                Container(
+                  color: Colors.black.withOpacity(0.1),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

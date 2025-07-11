@@ -24,9 +24,14 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   int _selectedIndex = 0;
 
+  // Notification toggles
   bool _wearBraces = false;
   bool _dailyTips = false;
   bool _checkupReminders = false;
+
+  // SharedPreferences keys (same as RemindersScreen)
+  static const String dailyTipsOptInKey = 'daily_tips_opt_in';
+  static const String brushingOptInKey = 'brushing_opt_in';
 
   String? _name;
   String? _email;
@@ -46,6 +51,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _nameController.text = _name ?? '';
     _loadAge();
     _loadProfileImage();
+    _loadReminderToggles(); // <-- Load toggles from SharedPreferences
+    // Add a focus listener for instant sync
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ModalRoute.of(context)
+          ?.addLocalHistoryEntry(LocalHistoryEntry(onRemove: () {
+        // No-op, but keeps the route alive
+      }));
+      FocusManager.instance.primaryFocus?.unfocus();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload toggles every time dependencies change (e.g., after coming back from RemindersScreen)
+    _loadReminderToggles();
   }
 
   Future<void> _loadAge() async {
@@ -92,6 +113,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _profileImageBase64 = prefs.getString('profile_image');
+    });
+  }
+
+  Future<void> _loadReminderToggles() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _dailyTips = prefs.getBool(dailyTipsOptInKey) ?? false;
+      _checkupReminders = prefs.getBool(brushingOptInKey) ?? false;
+    });
+  }
+
+  Future<void> _setDailyTips(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(dailyTipsOptInKey, value);
+    setState(() {
+      _dailyTips = value;
+    });
+  }
+
+  Future<void> _setBrushingReminders(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(brushingOptInKey, value);
+    setState(() {
+      _checkupReminders = value;
     });
   }
 
@@ -242,10 +287,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           controller: _ageController,
                           keyboardType: TextInputType.number,
                           autofocus: true,
+                          decoration: const InputDecoration(
+                            hintText: 'Optional',
+                          ),
                           onSubmitted: (_) => _saveAge(),
                         )
                       : Text(
-                          _age ?? 'Optional',
+                          (_age == null || _age!.isEmpty) ? 'Optional' : _age!,
                           style: const TextStyle(
                               fontSize: 16, color: subtitleText),
                         ),
@@ -317,14 +365,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 Switch(
                   value: _dailyTips,
-                  onChanged: (v) => setState(() => _dailyTips = v),
+                  onChanged: (v) => _setDailyTips(v),
                   activeColor: primaryGreen,
                 ),
               ],
             ),
             const SizedBox(height: 16),
 
-            // Check-up reminders toggle
+            // Brushing reminders toggle
             Align(
               alignment: Alignment.centerLeft,
               child: Column(
@@ -334,7 +382,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Expanded(
                         child: const Text(
-                          'Check-up reminders',
+                          'Brushing reminders',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -344,7 +392,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       Switch(
                         value: _checkupReminders,
-                        onChanged: (v) => setState(() => _checkupReminders = v),
+                        onChanged: (v) => _setBrushingReminders(v),
                         activeColor: primaryGreen,
                       ),
                     ],

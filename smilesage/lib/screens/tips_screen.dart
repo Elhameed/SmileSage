@@ -62,7 +62,6 @@ class _TipsScreenState extends State<TipsScreen>
     },
   ];
 
-  File? _brushedPhoto;
   bool _isMarkingBrushed = false;
 
   // Badge milestones
@@ -152,11 +151,48 @@ class _TipsScreenState extends State<TipsScreen>
     return streak;
   }
 
+  // --- Daily Tips Caching ---
+  static const String dailyTipsCacheKey = 'cached_daily_tips';
+  static const String dailyTipsCacheDateKey = 'cached_daily_tips_date';
+
   Future<void> fetchDailyTips() async {
     setState(() {
       _isLoadingTips = true;
       _tipsError = null;
     });
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now();
+    final todayStr = '${today.year}-${today.month}-${today.day}';
+    final cachedDate = prefs.getString(dailyTipsCacheDateKey);
+    final cachedTipsString = prefs.getString(dailyTipsCacheKey);
+    if (cachedDate == todayStr && cachedTipsString != null) {
+      try {
+        final tipsJson = json.decode(cachedTipsString);
+        List<Map<String, String>> tips = [];
+        if (tipsJson is List) {
+          for (var tip in tipsJson) {
+            if (tip is Map && tip.containsKey('title')) {
+              final desc = tip['desc'] ?? tip['description'] ?? '';
+              tips.add({
+                'icon': 'assets/images/icon_braces_care.png',
+                'title': tip['title'],
+                'desc': desc,
+              });
+            }
+          }
+        }
+        if (tips.isNotEmpty) {
+          setState(() {
+            _tips = tips;
+            _isLoadingTips = false;
+          });
+          return;
+        }
+      } catch (e) {
+        // Ignore and fall through to fetch
+      }
+    }
+    // If not cached, fetch from API
     try {
       final requestBody = {
         'system_prompt':
@@ -169,20 +205,15 @@ class _TipsScreenState extends State<TipsScreen>
           }
         ]
       };
-      print('Sending Gemini request: ' + requestBody.toString());
       final response = await http.post(
         Uri.parse(geminiTipsUrl),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(requestBody),
       );
-      print('Gemini response status: ' + response.statusCode.toString());
-      print('Gemini response body: ' + response.body);
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded is Map && decoded.containsKey('response')) {
           String tipsString = decoded['response'];
-          print('Gemini response field: ' + tipsString);
-          // Remove markdown code block markers if present
           tipsString = tipsString.trim();
           if (tipsString.startsWith('```')) {
             final firstNewline = tipsString.indexOf('\n');
@@ -200,7 +231,6 @@ class _TipsScreenState extends State<TipsScreen>
             if (tipsJson is List) {
               for (var tip in tipsJson) {
                 if (tip is Map && tip.containsKey('title')) {
-                  // Map 'description' to 'desc' if present
                   final desc = tip['desc'] ?? tip['description'] ?? '';
                   tips.add({
                     'icon': 'assets/images/icon_braces_care.png',
@@ -211,6 +241,9 @@ class _TipsScreenState extends State<TipsScreen>
               }
             }
             if (tips.isNotEmpty) {
+              // Cache the tips for today
+              await prefs.setString(dailyTipsCacheKey, json.encode(tipsJson));
+              await prefs.setString(dailyTipsCacheDateKey, todayStr);
               setState(() {
                 _tips = tips;
                 _isLoadingTips = false;
@@ -218,8 +251,7 @@ class _TipsScreenState extends State<TipsScreen>
               return;
             }
           } catch (e) {
-            print(
-                'Error parsing Gemini response field as JSON: ' + e.toString());
+            // Ignore and fall through to fallback
           }
         }
       }
@@ -230,7 +262,6 @@ class _TipsScreenState extends State<TipsScreen>
         _tipsError = 'Could not fetch new tips. Showing static tips.';
       });
     } catch (e) {
-      print('Error in fetchDailyTips: ' + e.toString());
       setState(() {
         _tips = _staticTips;
         _isLoadingTips = false;
@@ -239,32 +270,105 @@ class _TipsScreenState extends State<TipsScreen>
     }
   }
 
-  Future<void> _pickBrushedPhoto() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.camera);
-    if (picked != null) {
-      setState(() {
-        _brushedPhoto = File(picked.path);
-      });
+  Future<void> _markBrushedToday() async {
+    setState(() => _isMarkingBrushed = true);
+    final now = DateTime.now();
+    final log = BrushingLog(date: DateTime(now.year, now.month, now.day));
+    await saveBrushingLog(log);
+
+    // Recalculate streak and update UI state
+    _brushingLogs.sort((a, b) => a.date.compareTo(b.date));
+    if (_brushingLogs.isNotEmpty) {
+      _lastBrushedDate = _brushingLogs.last.date;
+      _currentStreak = _calculateStreak(_brushingLogs);
     }
-  }
 
-  // Remove points system variables and functions
-
-  bool _dailyTipsOptIn = false;
-  bool _showOptInBanner = true;
-  static const String dailyTipsOptInKey = 'daily_tips_opt_in';
-
-  Future<void> _loadOptInStatus() async {
-    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _dailyTipsOptIn = prefs.getBool(dailyTipsOptInKey) ?? false;
+      _isMarkingBrushed = false;
     });
   }
 
-  late AnimationController _badgeController;
-  late Animation<double> _badgeScaleAnimation;
-  Map<String, dynamic>? _previousBadge;
+  // Call this when user views/completes daily tips (e.g., after tips are loaded)
+  // Remove points system variables and functions
+
+  void _onNavItemTapped(int index) {
+    switch (index) {
+      case 0:
+        Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
+        break;
+      case 2:
+        Navigator.of(context).pushNamed(ScanWorkflowScreen.routeName);
+        break;
+      case 3:
+        Navigator.of(context).pushReplacementNamed(ClinicsScreen.routeName);
+        break;
+      case 4:
+        Navigator.of(context).pushReplacementNamed(LearnScreen.routeName);
+        break;
+      case 1:
+        // already here
+        break;
+    }
+    setState(() => _selectedIndex = index);
+  }
+
+  void _showBadgeListModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Center(
+                  child: Text(
+                    'All Badges',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ..._badges.map((badge) {
+                  final isCurrent = badge['label'] == _currentBadge['label'];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: isCurrent ? Colors.amber.withOpacity(0.15) : null,
+                      borderRadius: BorderRadius.circular(12),
+                      border: isCurrent
+                          ? Border.all(color: Colors.amber, width: 2)
+                          : null,
+                    ),
+                    child: ListTile(
+                      leading: Icon(badge['icon'],
+                          color: isCurrent ? Colors.amber : Colors.grey,
+                          size: 32),
+                      title: Text(
+                        badge['label'],
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: isCurrent ? Colors.amber[900] : Colors.black,
+                        ),
+                      ),
+                      subtitle: Text(
+                          'Streak: ${badge['min']} - ${badge['max']} days'),
+                      trailing: isCurrent
+                          ? const Icon(Icons.check_circle, color: Colors.amber)
+                          : null,
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -356,33 +460,17 @@ class _TipsScreenState extends State<TipsScreen>
             ],
           )
         else
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              if (_brushedPhoto != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Image.file(_brushedPhoto!, width: 80, height: 80),
-                ),
-              Row(
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _isMarkingBrushed ? null : _markBrushedToday,
-                    icon: const Icon(Icons.check),
-                    label: _isMarkingBrushed
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('Mark as Brushed'),
-                  ),
-                  const SizedBox(width: 12),
-                  OutlinedButton.icon(
-                    onPressed: _pickBrushedPhoto,
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Add Photo'),
-                  ),
-                ],
+              ElevatedButton.icon(
+                onPressed: _isMarkingBrushed ? null : _markBrushedToday,
+                icon: const Icon(Icons.check),
+                label: _isMarkingBrushed
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Text('Mark as Brushed'),
               ),
             ],
           ),
@@ -397,101 +485,22 @@ class _TipsScreenState extends State<TipsScreen>
     );
   }
 
-  Future<void> _markBrushedToday() async {
-    setState(() => _isMarkingBrushed = true);
-    final now = DateTime.now();
-    final log = BrushingLog(
-        date: DateTime(now.year, now.month, now.day),
-        photoPath: _brushedPhoto?.path);
-    await saveBrushingLog(log);
-    // Remove points system variables and functions
+  // Remove points system variables and functions
+
+  bool _dailyTipsOptIn = false;
+  bool _showOptInBanner = true;
+  static const String dailyTipsOptInKey = 'daily_tips_opt_in';
+
+  Future<void> _loadOptInStatus() async {
+    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _isMarkingBrushed = false;
-      _brushedPhoto = null;
+      _dailyTipsOptIn = prefs.getBool(dailyTipsOptInKey) ?? false;
     });
   }
 
-  // Call this when user views/completes daily tips (e.g., after tips are loaded)
-  // Remove points system variables and functions
-
-  void _onNavItemTapped(int index) {
-    switch (index) {
-      case 0:
-        Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
-        break;
-      case 2:
-        Navigator.of(context).pushNamed(ScanWorkflowScreen.routeName);
-        break;
-      case 3:
-        Navigator.of(context).pushReplacementNamed(ClinicsScreen.routeName);
-        break;
-      case 4:
-        Navigator.of(context).pushReplacementNamed(LearnScreen.routeName);
-        break;
-      case 1:
-        // already here
-        break;
-    }
-    setState(() => _selectedIndex = index);
-  }
-
-  void _showBadgeListModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Center(
-                  child: Text(
-                    'All Badges',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ..._badges.map((badge) {
-                  final isCurrent = badge['label'] == _currentBadge['label'];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: isCurrent ? Colors.amber.withOpacity(0.15) : null,
-                      borderRadius: BorderRadius.circular(12),
-                      border: isCurrent
-                          ? Border.all(color: Colors.amber, width: 2)
-                          : null,
-                    ),
-                    child: ListTile(
-                      leading: Icon(badge['icon'],
-                          color: isCurrent ? Colors.amber : Colors.grey,
-                          size: 32),
-                      title: Text(
-                        badge['label'],
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isCurrent ? Colors.amber[900] : Colors.black,
-                        ),
-                      ),
-                      subtitle: Text(
-                          'Streak: ${badge['min']} - ${badge['max']} days'),
-                      trailing: isCurrent
-                          ? const Icon(Icons.check_circle, color: Colors.amber)
-                          : null,
-                    ),
-                  );
-                }).toList(),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+  late AnimationController _badgeController;
+  late Animation<double> _badgeScaleAnimation;
+  Map<String, dynamic>? _previousBadge;
 
   @override
   Widget build(BuildContext context) {
