@@ -36,6 +36,24 @@ class _RemindersScreenState extends State<RemindersScreen> {
     _loadOptInStatus();
     _loadTimes();
     NotificationService().init();
+    NotificationService().setOnNotificationTap((payload) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Notification Tapped'),
+          content: Text(payload != null && payload.isNotEmpty
+              ? 'Payload: $payload'
+              : 'You tapped a SmileSage notification!'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Future<void> _loadOptInStatus() async {
@@ -76,8 +94,20 @@ class _RemindersScreenState extends State<RemindersScreen> {
         title: 'Daily Dental Tip',
         body: 'Check out your daily dental tip in SmileSage!',
       );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Daily tip reminder scheduled for ${_dailyTipsTime.format(context)}')),
+        );
+      }
     } else {
       await NotificationService().cancelNotification(1);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Daily tip reminder cancelled')),
+        );
+      }
     }
   }
 
@@ -94,6 +124,13 @@ class _RemindersScreenState extends State<RemindersScreen> {
         title: 'Daily Dental Tip',
         body: 'Check out your daily dental tip in SmileSage!',
       );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Daily tip reminder rescheduled for ${time.format(context)}')),
+        );
+      }
     }
   }
 
@@ -110,6 +147,13 @@ class _RemindersScreenState extends State<RemindersScreen> {
         title: 'Brushing Reminder',
         body: 'Time to brush your teeth! Keep your smile healthy.',
       );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Brushing reminder rescheduled for ${time.format(context)}')),
+        );
+      }
     }
   }
 
@@ -126,8 +170,20 @@ class _RemindersScreenState extends State<RemindersScreen> {
         title: 'Brushing Reminder',
         body: 'Time to brush your teeth! Keep your smile healthy.',
       );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Brushing reminder scheduled for ${_brushingTime.format(context)}')),
+        );
+      }
     } else {
       await NotificationService().cancelNotification(2);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Brushing reminder cancelled')),
+        );
+      }
     }
   }
 
