@@ -18,6 +18,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _agree = false;
+  bool _termsViewed = false; // Track if user has viewed terms
   bool _obscure = true; // <-- for visibility toggle
   bool _loading = false;
   String? _nameError;
@@ -27,6 +28,90 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void _showError(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
+    );
+  }
+
+  void _showTermsAndConditions() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Terms and Conditions',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Text(
+                  'Welcome to SmileSage! By using our app, you agree to the following terms:',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  '1. **App Purpose**: SmileSage is a dental health companion app that provides educational content, scanning capabilities, and dental care tips. It is not a substitute for professional dental care.',
+                  style: TextStyle(fontSize: 13, height: 1.4),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  '2. **Medical Disclaimer**: The scanning feature and AI-powered analysis are for educational purposes only. Always consult with a qualified dental professional for diagnosis and treatment.',
+                  style: TextStyle(fontSize: 13, height: 1.4),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  '3. **Privacy & Data**: We collect and process your personal information, including dental images, to provide our services. Your data is stored securely and used only for app functionality.',
+                  style: TextStyle(fontSize: 13, height: 1.4),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  '4. **User Responsibilities**: You are responsible for maintaining the accuracy of your information and using the app appropriately. Do not rely solely on app recommendations for medical decisions.',
+                  style: TextStyle(fontSize: 13, height: 1.4),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  '5. **Limitation of Liability**: SmileSage is not liable for any damages arising from the use of our app or reliance on its content.',
+                  style: TextStyle(fontSize: 13, height: 1.4),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  '6. **Updates**: We may update these terms periodically. Continued use of the app constitutes acceptance of updated terms.',
+                  style: TextStyle(fontSize: 13, height: 1.4),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  '7. **Contact**: For questions about these terms, contact us through the app settings.',
+                  style: TextStyle(fontSize: 13, height: 1.4),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _termsViewed = true; // Enable checkbox after viewing terms
+                });
+              },
+              child: const Text(
+                'I Understand',
+                style: TextStyle(
+                  color: Color(0xFF7CF4A4),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        );
+      },
     );
   }
 
@@ -58,6 +143,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     } else if (password.length < 6) {
       setState(() => _passwordError = 'Password must be at least 6 characters');
       hasError = true;
+    }
+    if (!_termsViewed) {
+      _showError(context, 'Please view the terms and conditions first.');
+      setState(() => _loading = false);
+      return;
     }
     if (!_agree) {
       _showError(context, 'You must agree to the terms and conditions.');
@@ -214,11 +304,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       children: [
                         Checkbox(
                           value: _agree,
-                          onChanged: (v) => setState(() => _agree = v!),
+                          onChanged: _termsViewed
+                              ? (v) => setState(() => _agree = v!)
+                              : null,
+                          activeColor:
+                              _termsViewed ? primaryGreen : Colors.grey,
                         ),
                         const SizedBox(width: 4),
-                        const Expanded(
-                          child: Text('I agree with the terms and conditions'),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: _showTermsAndConditions,
+                            child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'I agree with the ',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'terms and conditions',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: linkText,
+                                      decoration: TextDecoration.underline,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  if (!_termsViewed)
+                                    TextSpan(
+                                      text: ' (tap to view)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -229,7 +356,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton(
-                        onPressed: _agree && !_loading ? _handleSignUp : null,
+                        onPressed: _agree && _termsViewed && !_loading
+                            ? _handleSignUp
+                            : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryGreen,
                           shape: const StadiumBorder(),
