@@ -4,18 +4,15 @@ import 'dart:convert';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
-import 'package:downloads_path_provider_28/downloads_path_provider_28.dart';
 import '../models/scan_result.dart';
 
 class PdfService {
   static Future<String?> generateScanReport(ScanResult scanResult) async {
     try {
-      // Use Downloads directory for Android, Documents for iOS/other
       Directory? directory;
       if (Platform.isAndroid) {
-        directory = await DownloadsPathProvider.downloadsDirectory;
-        if (directory == null) {
-          // Fallback to app-specific external storage
+        directory = Directory('/storage/emulated/0/Download');
+        if (!await directory.exists()) {
           directory = await getExternalStorageDirectory();
         }
       } else {

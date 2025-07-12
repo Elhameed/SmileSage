@@ -52,12 +52,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadAge();
     _loadProfileImage();
     _loadReminderToggles(); // <-- Load toggles from SharedPreferences
-    // Add a focus listener for instant sync
+    // Remove unnecessary local history entry to fix double back press
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ModalRoute.of(context)
-          ?.addLocalHistoryEntry(LocalHistoryEntry(onRemove: () {
-        // No-op, but keeps the route alive
-      }));
       FocusManager.instance.primaryFocus?.unfocus();
     });
   }

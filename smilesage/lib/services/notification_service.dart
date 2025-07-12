@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:permission_handler/permission_handler.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -13,13 +14,18 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   void Function(String?)? _onNotificationTap;
+  bool _tzInitialized = false;
 
   void setOnNotificationTap(void Function(String?)? callback) {
     _onNotificationTap = callback;
   }
 
+  /// Initialize notifications and permissions
   Future<void> init() async {
-    tz.initializeTimeZones();
+    if (!_tzInitialized) {
+      tz.initializeTimeZones();
+      _tzInitialized = true;
+    }
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     final DarwinInitializationSettings initializationSettingsIOS =
@@ -37,10 +43,9 @@ class NotificationService {
         }
       },
       onDidReceiveBackgroundNotificationResponse:
-          (NotificationResponse response) async {
-        // Optionally handle background tap
-      },
+          (NotificationResponse response) async {},
     );
+    // Request permissions
     if (Platform.isIOS) {
       await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
@@ -51,8 +56,12 @@ class NotificationService {
             sound: true,
           );
     }
+    if (Platform.isAndroid && await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
   }
 
+  /// Schedule a daily notification at a specific time in Africa/Maputo timezone
   Future<void> scheduleDailyNotification({
     required int id,
     required TimeOfDay time,
@@ -60,6 +69,17 @@ class NotificationService {
     required String body,
     String? payload,
   }) async {
+    if (!_tzInitialized) {
+      tz.initializeTimeZones();
+      _tzInitialized = true;
+    }
+    final location = tz.getLocation('Africa/Maputo');
+    final now = tz.TZDateTime.now(location);
+    var firstTime = tz.TZDateTime(
+        location, now.year, now.month, now.day, time.hour, time.minute);
+    if (firstTime.isBefore(now)) {
+      firstTime = firstTime.add(const Duration(days: 1));
+    }
     final androidDetails = AndroidNotificationDetails(
       'smilesage_channel',
       'SmileSage Reminders',
@@ -70,37 +90,29 @@ class NotificationService {
     final iosDetails = DarwinNotificationDetails();
     final details =
         NotificationDetails(android: androidDetails, iOS: iosDetails);
-
-    final location = tz.getLocation('Africa/Maputo');
-    final now = tz.TZDateTime.now(location);
-    var firstTime = tz.TZDateTime(
-        location, now.year, now.month, now.day, time.hour, time.minute);
-    if (firstTime.isBefore(now)) {
-      firstTime = firstTime.add(const Duration(days: 1));
-    }
-    print(
-        'Scheduling notification (id: $id) for: $firstTime (firstTime.toLocal(): ${firstTime.toLocal()}) (local now: ${tz.TZDateTime.now(location)}) (firstTime location: ${firstTime.location})');
-
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id,
       title,
       body,
       firstTime,
       details,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
       payload: payload,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
     );
   }
 
+  /// Cancel a scheduled notification by id
   Future<void> cancelNotification(int id) async {
     await flutterLocalNotificationsPlugin.cancel(id);
   }
 
+  /// Schedule a quick test notification for 10 seconds from now
   Future<void> scheduleQuickTestNotification() async {
+    if (!_tzInitialized) {
+      tz.initializeTimeZones();
+      _tzInitialized = true;
+    }
     final androidDetails = AndroidNotificationDetails(
       'smilesage_channel',
       'SmileSage Reminders',
@@ -114,17 +126,12 @@ class NotificationService {
     final location = tz.getLocation('Africa/Maputo');
     final now = tz.TZDateTime.now(location);
     final testTime = now.add(const Duration(seconds: 10));
-    print(
-        'Scheduling quick test notification for: $testTime (local now: $now) (testTime location: ${testTime.location})');
     await flutterLocalNotificationsPlugin.zonedSchedule(
       123,
       'Quick Test',
       'This should appear in 10 seconds!',
       testTime,
       details,
-      androidAllowWhileIdle: true,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
       payload: null,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
     );

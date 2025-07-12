@@ -383,9 +383,9 @@ class _LearnTile extends StatelessWidget {
   void _launchUrl(BuildContext context) async {
     if (url != null) {
       final uri = Uri.parse(url!);
-      if (await canLaunchUrl(uri)) {
+      try {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
+      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Unable to open link.')),
         );

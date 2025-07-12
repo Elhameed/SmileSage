@@ -381,16 +381,6 @@ class _RemindersScreenState extends State<RemindersScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
-            Center(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.timer),
-                label: const Text('Test 10s Scheduled Notification'),
-                onPressed: () async {
-                  await NotificationService().scheduleQuickTestNotification();
-                },
-              ),
-            ),
           ],
         ),
       ),
