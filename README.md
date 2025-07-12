@@ -2,6 +2,7 @@
 
 ## Table of Contents
 - [Overview](#overview)
+- [Who is this for?](#who-is-this-for)
 - [Features](#features)
 - [Screenshots & Demo](#screenshots--demo)
 - [Getting Started](#getting-started)
@@ -9,15 +10,21 @@
 - [ML Model](#ml-model)
 - [PDF Reports](#pdf-reports)
 - [Clinic Finder](#clinic-finder)
+- [Testing](#testing)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
-SmileSage is a cross-platform mobile app for dental condition detection. The app uses a FastAPI backend to serve a Keras ML model for inference. The Flutter frontend communicates with this backend to analyze images and provide results, including Grad-CAM overlays and PDF reports.
+SmileSage is a cross-platform mobile app for dental condition detection. The app uses a fine-tuned on-device ML model (EfficientNetB0, TFLite) to analyze dental images, generate reports, and help users find clinics and get dental advice.
+
+## Who is this for?
+SmileSage is designed for anyone interested in monitoring their dental health using their smartphone or desktop. It’s especially useful for:
+- Individuals wanting quick, AI-powered dental checks
+- Dental professionals seeking a demo of mobile ML for patient engagement
+- Developers interested in Flutter, on-device ML, and healthcare apps
 
 ## Features
-- Dental condition detection via FastAPI backend (Keras model)
-- PDF report generation
+- Dental condition detection using on-device TFLite model
+- PDF report generation for scan results
 - Clinic finder (Google Places API)
 - Chatbot for dental advice
 - User authentication (Firebase)
@@ -26,13 +33,12 @@ SmileSage is a cross-platform mobile app for dental condition detection. The app
 ## Screenshots & Demo
 - Figma designs: [Figma Link](https://www.figma.com/design/zK4xtV89YRYwQUseJtCVgv/SmileSage?node-id=0-1&t=oy8Da0cbpruAY5lP-1)
 - Video demo: [Google Drive Link](https://drive.google.com/drive/folders/1vt88e0ddrjj6eGWbW1HMtUExru-6lh0H?usp=sharing)
-- Screenshots: See `docs/figma_mockups/`
 
 ## Getting Started
 
 ### Prerequisites
 - Flutter SDK
-- Python 3.x (for ML model training)
+- Python 3.x (for ML model training, optional)
 - Firebase account (for auth)
 
 ### Setup
@@ -53,8 +59,9 @@ flutter run
 #### 3. ML Model (Optional)
 See [notebook/README.md](notebook/README.md) for model training and export instructions.
 
-#### 4. Environment Variables
-Copy `.env.example` to `.env` and fill in your API keys.
+#### 4. API Keys & Configuration
+- Set your Google Places API key in `lib/services/clinic_service.dart`.
+- For Google Maps, update the API key in `android/app/src/main/AndroidManifest.xml` and `ios/Runner/AppDelegate.swift` as described in [smilesage/LOCATION_FEATURE_SETUP.md](smilesage/LOCATION_FEATURE_SETUP.md).
 
 ## Project Structure
 ```
@@ -73,9 +80,7 @@ SmileSage/
 ├── docs/                     # Documentation
 ├── notebook/                 # ML/modeling
 ├── deployment/               # Deployment plans
-├── .env.example              # Example env file
 ├── README.md                 # Main project readme
-├── LICENSE
 └── CONTRIBUTING.md
 ```
 
@@ -91,32 +96,14 @@ SmileSage/
 ## Clinic Finder
 - Uses Google Places API to find nearby dental clinics.
 - See [docs/clinic_finder.md](docs/clinic_finder.md)
+- For setup, see [smilesage/LOCATION_FEATURE_SETUP.md](smilesage/LOCATION_FEATURE_SETUP.md)
 
-## Backend API (dental_api/)
-SmileSage relies on a FastAPI backend (in `dental_api/`) for all ML inference. The backend serves a trained Keras model and exposes REST endpoints for predictions. The Flutter app sends images to this backend and receives predictions and Grad-CAM overlays in response.
-
-- **Endpoints:**
-  - `/predict` (POST): Accepts an image, returns predicted condition, confidence, all class probabilities, and a Grad-CAM overlay.
-  - `/` (GET): Health check.
-- **Model:** Export your trained model from the notebook as `.keras` and place it in `dental_api/`.
-- **Run locally:**
-  ```sh
-  cd dental_api
-  pip install -r requirements.txt
-  uvicorn main:app --reload
-  ```
-- **Run with Docker:**
-  ```sh
-  cd dental_api
-  docker build -t smilesage-api .
-  docker run -p 8000:8000 smilesage-api
-  ```
-- **Update model:** Replace the `.keras` file in `dental_api/` and restart the API.
-
-See `dental_api/README.md` for full details.
+## Testing
+To run the Flutter tests:
+```sh
+cd smilesage
+flutter test
+```
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## License
-MIT (or your chosen license)
