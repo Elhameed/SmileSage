@@ -121,19 +121,33 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
       _isFetchingExplanation = true;
     });
 
+    // Refined, concise user prompt for all conditions
+    String userPrompt;
+    String systemPrompt =
+        "You are a dental health assistant. When explaining a dental scan result, address the user directly in a friendly, positive, and concise way. In 4–5 sentences, briefly explain the likely causes, common symptoms, and basic care tips for the detected condition. Do not mention that you are an AI.";
+
+    if (condition.toLowerCase() == "ulcer") {
+      userPrompt =
+          "My dental scan result is: mouth ulcer. Please explain with confidence and clarity what this means, including causes, symptoms, and basic care tips. Do not use uncertain language. Please keep your answer concise, friendly, and supportive.";
+      systemPrompt +=
+          " For mouth ulcers, explain with certainty and clarity, and avoid uncertain or hedging language.";
+    } else if (condition.toLowerCase() == "healthy") {
+      userPrompt =
+          "My dental scan result is: healthy teeth. Please congratulate me and explain what this means in a personal, positive, and supportive way. Briefly mention what good oral hygiene includes, and keep your answer concise.";
+    } else {
+      userPrompt =
+          "My dental scan result is: $condition. What does this mean for me? Please keep your answer concise in 3-4 sentences.";
+    }
+
     try {
       final response = await http
           .post(
             Uri.parse(_explanationEndpoint),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
-              "system_prompt":
-                  "You are a dental health assistant. Provide a concise, easy-to-understand explanation of dental conditions in 1-2 sentences. Focus on causes, symptoms, and basic care tips. Do not mention that you are an AI.",
+              "system_prompt": systemPrompt,
               "messages": [
-                {
-                  "role": "user",
-                  "content": "Explain what $condition is in simple terms."
-                }
+                {"role": "user", "content": userPrompt}
               ]
             }),
           )

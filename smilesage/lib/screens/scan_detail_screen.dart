@@ -88,13 +88,10 @@ class ScanDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14),
-            if (scanResult.predictedCondition.isNotEmpty)
+            if (scanResult.explanation != null &&
+                scanResult.explanation!.isNotEmpty)
               Text(
-                'The scan indicates signs of  ${scanResult.predictedCondition.toLowerCase()}' +
-                    (scanResult.explanation != null &&
-                            scanResult.explanation!.isNotEmpty
-                        ? ', ${scanResult.explanation!}'
-                        : '.'),
+                scanResult.explanation!,
                 style: const TextStyle(
                   fontSize: 15,
                   color: subtitleText,
