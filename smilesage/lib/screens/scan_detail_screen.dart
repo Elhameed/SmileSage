@@ -5,6 +5,7 @@ import '../services/pdf_service.dart';
 import '../services/firebase_storage_service.dart';
 import '../services/consent_service.dart';
 import '../services/auth_service.dart';
+import '../services/profile_service.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:open_file/open_file.dart';
 
@@ -271,6 +272,8 @@ class ScanDetailScreen extends StatelessWidget {
                           );
 
                           if (uploadUrl != null) {
+                            await ProfileService()
+                                .saveScanMetadataToCloud(scanResult);
                             if (context.mounted) {
                               await showDialog(
                                 context: context,

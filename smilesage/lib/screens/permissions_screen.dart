@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/profile_service.dart';
 
 class PermissionsScreen extends StatefulWidget {
   static const routeName = '/permissions';
@@ -12,6 +13,7 @@ class PermissionsScreen extends StatefulWidget {
 }
 
 class _PermissionsScreenState extends State<PermissionsScreen> {
+  final ProfileService _profileService = ProfileService();
   bool _hasBraces = false;
   bool _dailyTips = false;
   bool _brushingReminders = false;
@@ -37,24 +39,51 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
   }
 
   Future<void> _setBraces(bool value) async {
+    // Save to local storage (for backward compatibility)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(bracesKey, value);
+
+    // Save to Firebase
+    try {
+      await _profileService.syncPreferences(hasBraces: value);
+    } catch (e) {
+      print('Error saving braces preference to Firebase: $e');
+    }
+
     setState(() {
       _hasBraces = value;
     });
   }
 
   Future<void> _setDailyTips(bool value) async {
+    // Save to local storage (for backward compatibility)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(dailyTipsOptInKey, value);
+
+    // Save to Firebase
+    try {
+      await _profileService.syncPreferences(dailyTips: value);
+    } catch (e) {
+      print('Error saving daily tips preference to Firebase: $e');
+    }
+
     setState(() {
       _dailyTips = value;
     });
   }
 
   Future<void> _setBrushingReminders(bool value) async {
+    // Save to local storage (for backward compatibility)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(brushingOptInKey, value);
+
+    // Save to Firebase
+    try {
+      await _profileService.syncPreferences(brushingReminders: value);
+    } catch (e) {
+      print('Error saving brushing reminders preference to Firebase: $e');
+    }
+
     setState(() {
       _brushingReminders = value;
     });

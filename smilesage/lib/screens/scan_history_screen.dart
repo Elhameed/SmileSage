@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/scan_result.dart';
 import 'scan_detail_screen.dart';
+import '../services/profile_service.dart';
 
 class ScanHistoryScreen extends StatefulWidget {
   static const routeName = '/scan-history';
@@ -24,11 +25,23 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
   Future<List<ScanResult>> _loadScanHistory() async {
     final prefs = await SharedPreferences.getInstance();
     final historyList = prefs.getStringList('scan_history') ?? [];
-    return historyList
+    final localScans = historyList
         .map((item) => ScanResult.fromJson(jsonDecode(item)))
-        .toList()
-        .reversed
         .toList();
+
+    List<ScanResult> cloudScans = [];
+    try {
+      cloudScans = await ProfileService().fetchCloudScans();
+    } catch (e) {
+      // If not logged in or offline, ignore
+    }
+
+    // Merge, avoiding duplicates (by timestamp)
+    final allScans = <String, ScanResult>{};
+    for (final scan in [...localScans, ...cloudScans]) {
+      allScans[scan.timestamp.toIso8601String()] = scan;
+    }
+    return allScans.values.toList().reversed.toList();
   }
 
   Future<void> _deleteScan(ScanResult target) async {

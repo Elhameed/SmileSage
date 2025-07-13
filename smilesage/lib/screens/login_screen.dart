@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import 'permissions_screen.dart';
 import 'home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/profile_service.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
@@ -53,6 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     try {
       final credential = await AuthService().signIn(email, password);
+      await ProfileService().syncUserDataFromFirebaseToLocal();
       if (credential.additionalUserInfo?.isNewUser == true) {
         Navigator.of(context).pushReplacementNamed(PermissionsScreen.routeName);
       } else {
@@ -81,6 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _loading = true);
     try {
       final credential = await AuthService().signInWithGoogle();
+      await ProfileService().syncUserDataFromFirebaseToLocal();
       if (credential.additionalUserInfo?.isNewUser == true) {
         Navigator.of(context).pushReplacementNamed(PermissionsScreen.routeName);
       } else {

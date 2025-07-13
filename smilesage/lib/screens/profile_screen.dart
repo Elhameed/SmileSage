@@ -7,11 +7,13 @@ import 'learn_screen.dart';
 import 'scan_history_screen.dart';
 import 'reminders_screen.dart';
 import '../services/auth_service.dart';
+import '../services/profile_service.dart';
 import 'login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import '../services/local_data_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const routeName = '/profile';
@@ -23,6 +25,11 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   int _selectedIndex = 0;
+  final ProfileService _profileService = ProfileService();
+
+  // Loading states
+  bool _isLoading = true;
+  bool _isSaving = false;
 
   // Notification toggles
   bool _wearBraces = false;
@@ -46,18 +53,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final user = AuthService().currentUser;
-    _name = user?.displayName ?? '';
-    _email = user?.email ?? '';
-    _nameController.text = _name ?? '';
-    _loadAge();
-    _loadProfileImage();
-    _loadReminderToggles(); // <-- Load toggles from SharedPreferences
-    _loadBracesPreference(); // <-- Load braces preference from SharedPreferences
+    _loadProfileData();
     // Remove unnecessary local history entry to fix double back press
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusManager.instance.primaryFocus?.unfocus();
     });
+  }
+
+  Future<void> _loadProfileData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Initialize profile in Firebase if needed
+      await _profileService.initializeProfile();
+
+      // Load profile data from Firebase
+      final profile = await _profileService.getProfile();
+      final user = AuthService().currentUser;
+
+      setState(() {
+        _name = profile?['displayName'] ?? user?.displayName ?? '';
+        _email = user?.email ?? '';
+        _age = profile?['age'] ?? '';
+        _profileImageBase64 = profile?['profileImageBase64'];
+        _nameController.text = _name ?? '';
+        _ageController.text = _age ?? '';
+        _isLoading = false;
+      });
+
+      // Load local preferences (for backward compatibility)
+      await _loadReminderToggles();
+      await _loadBracesPreference();
+
+      // Sync preferences with Firebase
+      await _syncPreferencesWithFirebase();
+    } catch (e) {
+      print('Error loading profile data: $e');
+      // Fallback to local data
+      final user = AuthService().currentUser;
+      setState(() {
+        _name = user?.displayName ?? '';
+        _email = user?.email ?? '';
+        _nameController.text = _name ?? '';
+        _isLoading = false;
+      });
+      _loadAge();
+      _loadProfileImage();
+      _loadReminderToggles();
+      _loadBracesPreference();
+    }
   }
 
   @override
@@ -77,21 +123,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _saveAge() async {
+    final age = _ageController.text.trim();
+
+    // Save to local storage (for backward compatibility)
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_age', _ageController.text.trim());
+    await prefs.setString('user_age', age);
+
+    // Save to Firebase
+    try {
+      await _profileService.updateAge(age);
+    } catch (e) {
+      print('Error saving age to Firebase: $e');
+    }
+
     setState(() {
-      _age = _ageController.text.trim();
+      _age = age;
       _editingAge = false;
     });
   }
 
   Future<void> _saveName() async {
-    final user = AuthService().currentUser;
-    await user?.updateDisplayName(_nameController.text.trim());
+    final name = _nameController.text.trim();
+
     setState(() {
-      _name = _nameController.text.trim();
-      _editingName = false;
+      _isSaving = true;
     });
+
+    // Update Firebase Auth and Firestore
+    try {
+      await _profileService.updateDisplayName(name);
+      setState(() {
+        _name = name;
+        _editingName = false;
+        _isSaving = false;
+      });
+    } catch (e) {
+      print('Error saving name to Firebase: $e');
+      setState(() {
+        _isSaving = false;
+      });
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save name: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _pickProfileImage() async {
@@ -100,8 +177,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
       final base64Image = base64Encode(bytes);
+
+      // Save to local storage (for backward compatibility)
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('profile_image', base64Image);
+
+      // Save to Firebase
+      try {
+        await _profileService.updateProfileImage(base64Image);
+      } catch (e) {
+        print('Error saving profile image to Firebase: $e');
+      }
+
       setState(() {
         _profileImageBase64 = base64Image;
       });
@@ -131,27 +218,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _setDailyTips(bool value) async {
+    // Save to local storage (for backward compatibility)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(dailyTipsOptInKey, value);
+
+    // Save to Firebase
+    try {
+      await _profileService.syncPreferences(dailyTips: value);
+    } catch (e) {
+      print('Error saving daily tips preference to Firebase: $e');
+    }
+
     setState(() {
       _dailyTips = value;
     });
   }
 
   Future<void> _setBrushingReminders(bool value) async {
+    // Save to local storage (for backward compatibility)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(brushingOptInKey, value);
+
+    // Save to Firebase
+    try {
+      await _profileService.syncPreferences(brushingReminders: value);
+    } catch (e) {
+      print('Error saving brushing reminders preference to Firebase: $e');
+    }
+
     setState(() {
       _checkupReminders = value;
     });
   }
 
   Future<void> _setBraces(bool value) async {
+    // Save to local storage (for backward compatibility)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(bracesKey, value);
+
+    // Save to Firebase
+    try {
+      await _profileService.syncPreferences(hasBraces: value);
+    } catch (e) {
+      print('Error saving braces preference to Firebase: $e');
+    }
+
     setState(() {
       _wearBraces = value;
     });
+  }
+
+  Future<void> _syncPreferencesWithFirebase() async {
+    try {
+      await _profileService.syncPreferences(
+        dailyTips: _dailyTips,
+        brushingReminders: _checkupReminders,
+        hasBraces: _wearBraces,
+      );
+    } catch (e) {
+      print('Error syncing preferences with Firebase: $e');
+    }
   }
 
   void _onNavItemTapped(int index) {
@@ -196,207 +322,186 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Avatar
-            const SizedBox(height: 8),
-            _buildProfileAvatar(),
-            const SizedBox(height: 16),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Avatar
+                  const SizedBox(height: 8),
+                  _buildProfileAvatar(),
+                  const SizedBox(height: 16),
 
-            // Name & email
-            Text(
-              _name ?? '',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: headingText,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _email ?? '',
-              style: const TextStyle(fontSize: 14, color: subtitleText),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Account heading
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Account',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: headingText,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Name field
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Name',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: headingText,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Expanded(
-                  child: _editingName
-                      ? TextField(
-                          controller: _nameController,
-                          autofocus: true,
-                          onSubmitted: (_) => _saveName(),
-                        )
-                      : Text(
-                          _name ?? '',
-                          style: const TextStyle(
-                              fontSize: 16, color: subtitleText),
-                        ),
-                ),
-                IconButton(
-                  icon: Icon(_editingName ? Icons.check : Icons.edit,
-                      color: headingText),
-                  onPressed: () {
-                    if (_editingName) {
-                      _saveName();
-                    } else {
-                      setState(() => _editingName = true);
-                    }
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Age field
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Age',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: headingText,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Expanded(
-                  child: _editingAge
-                      ? TextField(
-                          controller: _ageController,
-                          keyboardType: TextInputType.number,
-                          autofocus: true,
-                          decoration: const InputDecoration(
-                            hintText: 'Optional',
-                          ),
-                          onSubmitted: (_) => _saveAge(),
-                        )
-                      : Text(
-                          (_age == null || _age!.isEmpty) ? 'Optional' : _age!,
-                          style: const TextStyle(
-                              fontSize: 16, color: subtitleText),
-                        ),
-                ),
-                IconButton(
-                  icon: Icon(_editingAge ? Icons.check : Icons.edit,
-                      color: headingText),
-                  onPressed: () {
-                    if (_editingAge) {
-                      _saveAge();
-                    } else {
-                      setState(() => _editingAge = true);
-                    }
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Braces toggle
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'I wear braces',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: headingText,
-                  ),
-                ),
-                Switch(
-                  value: _wearBraces,
-                  onChanged: (v) => _setBraces(v),
-                  activeColor: primaryGreen,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            // Notifications heading
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Notifications',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: headingText,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Daily tips toggle
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Expanded(
-                  child: Text(
-                    'Daily tips',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                  // Name & email
+                  Text(
+                    _name ?? '',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                       color: headingText,
                     ),
                   ),
-                ),
-                Switch(
-                  value: _dailyTips,
-                  onChanged: (v) => _setDailyTips(v),
-                  activeColor: primaryGreen,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+                  const SizedBox(height: 4),
+                  Text(
+                    _email ?? '',
+                    style: const TextStyle(fontSize: 14, color: subtitleText),
+                  ),
 
-            // Brushing reminders toggle
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                  const SizedBox(height: 24),
+
+                  // Account heading
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Account',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: headingText,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Name field
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Name',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: headingText,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Expanded(
-                        child: const Text(
-                          'Brushing reminders',
+                        child: _editingName
+                            ? TextField(
+                                controller: _nameController,
+                                autofocus: true,
+                                onSubmitted: (_) => _saveName(),
+                              )
+                            : Text(
+                                _name ?? '',
+                                style: const TextStyle(
+                                    fontSize: 16, color: subtitleText),
+                              ),
+                      ),
+                      IconButton(
+                        icon: Icon(_editingName ? Icons.check : Icons.edit,
+                            color: headingText),
+                        onPressed: () {
+                          if (_editingName) {
+                            _saveName();
+                          } else {
+                            setState(() => _editingName = true);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Age field
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Age',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: headingText,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _editingAge
+                            ? TextField(
+                                controller: _ageController,
+                                keyboardType: TextInputType.number,
+                                autofocus: true,
+                                decoration: const InputDecoration(
+                                  hintText: 'Optional',
+                                ),
+                                onSubmitted: (_) => _saveAge(),
+                              )
+                            : Text(
+                                (_age == null || _age!.isEmpty)
+                                    ? 'Optional'
+                                    : _age!,
+                                style: const TextStyle(
+                                    fontSize: 16, color: subtitleText),
+                              ),
+                      ),
+                      IconButton(
+                        icon: Icon(_editingAge ? Icons.check : Icons.edit,
+                            color: headingText),
+                        onPressed: () {
+                          if (_editingAge) {
+                            _saveAge();
+                          } else {
+                            setState(() => _editingAge = true);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Braces toggle
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'I wear braces',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: headingText,
+                        ),
+                      ),
+                      Switch(
+                        value: _wearBraces,
+                        onChanged: (v) => _setBraces(v),
+                        activeColor: primaryGreen,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Notifications heading
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Notifications',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: headingText,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Daily tips toggle
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Daily tips',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -405,123 +510,151 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       Switch(
-                        value: _checkupReminders,
-                        onChanged: (v) => _setBrushingReminders(v),
+                        value: _dailyTips,
+                        onChanged: (v) => _setDailyTips(v),
                         activeColor: primaryGreen,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Every day',
-                    style: TextStyle(fontSize: 14, color: subtitleText),
+                  const SizedBox(height: 16),
+
+                  // Brushing reminders toggle
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: const Text(
+                                'Brushing reminders',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: headingText,
+                                ),
+                              ),
+                            ),
+                            Switch(
+                              value: _checkupReminders,
+                              onChanged: (v) => _setBrushingReminders(v),
+                              activeColor: primaryGreen,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Every day',
+                          style: TextStyle(fontSize: 14, color: subtitleText),
+                        ),
+                      ],
+                    ),
                   ),
+
+                  const SizedBox(height: 32),
+
+                  // Actions heading
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Actions',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: headingText,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Action buttons
+                  Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // TODO: view scan history
+                            Navigator.of(
+                              context,
+                            ).pushNamed(ScanHistoryScreen.routeName);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: inputBg,
+                            shape: const StadiumBorder(),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text(
+                            'View Scan History',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: headingText,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // TODO: manage reminders
+                            Navigator.of(
+                              context,
+                            ).pushNamed(RemindersScreen.routeName);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: inputBg,
+                            shape: const StadiumBorder(),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text(
+                            'Manage Reminders',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: headingText,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await AuthService().signOut();
+                            await LocalDataService.clearUserLocalData();
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                                LoginScreen.routeName, (route) => false);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: inputBg,
+                            shape: const StadiumBorder(),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text(
+                            'Logout',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: headingText,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
-
-            const SizedBox(height: 32),
-
-            // Actions heading
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Actions',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: headingText,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Action buttons
-            Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: view scan history
-                      Navigator.of(
-                        context,
-                      ).pushNamed(ScanHistoryScreen.routeName);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: inputBg,
-                      shape: const StadiumBorder(),
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'View Scan History',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: headingText,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: manage reminders
-                      Navigator.of(
-                        context,
-                      ).pushNamed(RemindersScreen.routeName);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: inputBg,
-                      shape: const StadiumBorder(),
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'Manage Reminders',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: headingText,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      await AuthService().signOut();
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                          LoginScreen.routeName, (route) => false);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: inputBg,
-                      shape: const StadiumBorder(),
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'Logout',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: headingText,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
 
       // Bottom navigation bar
       bottomNavigationBar: BottomNavigationBar(

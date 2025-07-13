@@ -17,6 +17,7 @@ import 'clinic_detail_screen.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter/widgets.dart';
 import 'scan_detail_screen.dart';
+import '../services/profile_service.dart';
 
 // Add a global RouteObserver in main.dart and import it here
 import '../main.dart';
@@ -46,11 +47,21 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   @override
   void initState() {
     super.initState();
+    _initializeProfile();
     _loadProfileImage();
     _loadBrushingStreak();
     _loadRecentScans();
     _loadDailyTips();
     _loadNearestClinic();
+  }
+
+  Future<void> _initializeProfile() async {
+    try {
+      final profileService = ProfileService();
+      await profileService.initializeProfile();
+    } catch (e) {
+      print('Error initializing profile: $e');
+    }
   }
 
   @override
@@ -98,13 +109,24 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   Future<void> _loadRecentScans() async {
     final prefs = await SharedPreferences.getInstance();
     final historyList = prefs.getStringList('scan_history') ?? [];
-    List<ScanResult> scans = historyList
+    final localScans = historyList
         .map((item) => ScanResult.fromJson(jsonDecode(item)))
-        .toList()
-        .reversed
         .toList();
+
+    List<ScanResult> cloudScans = [];
+    try {
+      cloudScans = await ProfileService().fetchCloudScans();
+    } catch (e) {
+      // If not logged in or offline, ignore
+    }
+
+    // Merge, avoiding duplicates (by timestamp)
+    final allScans = <String, ScanResult>{};
+    for (final scan in [...localScans, ...cloudScans]) {
+      allScans[scan.timestamp.toIso8601String()] = scan;
+    }
     setState(() {
-      _recentScans = scans.take(3).toList();
+      _recentScans = allScans.values.toList().reversed.take(3).toList();
       _loadingScans = false;
     });
   }

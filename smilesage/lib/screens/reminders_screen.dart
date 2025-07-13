@@ -6,6 +6,7 @@ import 'clinics_screen.dart';
 import 'learn_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/notification_service.dart';
+import '../services/profile_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class RemindersScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class RemindersScreen extends StatefulWidget {
 }
 
 class _RemindersScreenState extends State<RemindersScreen> {
+  final ProfileService _profileService = ProfileService();
   bool _dailyTips = false;
   bool _bracesCleaning = false;
   bool _checkup = false;
@@ -82,8 +84,17 @@ class _RemindersScreenState extends State<RemindersScreen> {
   }
 
   Future<void> _setOptInStatus(bool value) async {
+    // Save to local storage (for backward compatibility)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(dailyTipsOptInKey, value);
+
+    // Save to Firebase
+    try {
+      await _profileService.syncPreferences(dailyTips: value);
+    } catch (e) {
+      print('Error saving daily tips preference to Firebase: $e');
+    }
+
     setState(() {
       _dailyTips = value;
     });
@@ -158,8 +169,17 @@ class _RemindersScreenState extends State<RemindersScreen> {
   }
 
   Future<void> _setBracesCleaning(bool value) async {
+    // Save to local storage (for backward compatibility)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(brushingOptInKey, value);
+
+    // Save to Firebase
+    try {
+      await _profileService.syncPreferences(brushingReminders: value);
+    } catch (e) {
+      print('Error saving brushing reminders preference to Firebase: $e');
+    }
+
     setState(() {
       _bracesCleaning = value;
     });
