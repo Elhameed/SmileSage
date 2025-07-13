@@ -1,6 +1,7 @@
 // lib/screens/permissions_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PermissionsScreen extends StatefulWidget {
   static const routeName = '/permissions';
@@ -13,7 +14,51 @@ class PermissionsScreen extends StatefulWidget {
 class _PermissionsScreenState extends State<PermissionsScreen> {
   bool _hasBraces = false;
   bool _dailyTips = false;
-  bool _checkupReminders = false;
+  bool _brushingReminders = false;
+
+  // SharedPreferences keys (same as RemindersScreen and ProfileScreen)
+  static const String dailyTipsOptInKey = 'daily_tips_opt_in';
+  static const String brushingOptInKey = 'brushing_opt_in';
+  static const String bracesKey = 'user_has_braces';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _hasBraces = prefs.getBool(bracesKey) ?? false;
+      _dailyTips = prefs.getBool(dailyTipsOptInKey) ?? false;
+      _brushingReminders = prefs.getBool(brushingOptInKey) ?? false;
+    });
+  }
+
+  Future<void> _setBraces(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(bracesKey, value);
+    setState(() {
+      _hasBraces = value;
+    });
+  }
+
+  Future<void> _setDailyTips(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(dailyTipsOptInKey, value);
+    setState(() {
+      _dailyTips = value;
+    });
+  }
+
+  Future<void> _setBrushingReminders(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(brushingOptInKey, value);
+    setState(() {
+      _brushingReminders = value;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +128,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                 ),
                 Switch(
                   value: _hasBraces,
-                  onChanged: (v) => setState(() => _hasBraces = v),
+                  onChanged: (v) => _setBraces(v),
                   activeColor: primaryGreen,
                 ),
               ],
@@ -127,14 +172,14 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                 ),
                 Switch(
                   value: _dailyTips,
-                  onChanged: (v) => setState(() => _dailyTips = v),
+                  onChanged: (v) => _setDailyTips(v),
                   activeColor: primaryGreen,
                 ),
               ],
             ),
 
             const SizedBox(height: 24),
-            // Check-up reminders toggle
+            // Brushing reminders toggle
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -143,7 +188,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: const [
                       Text(
-                        'Check-up reminders',
+                        'Brushing reminders',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -152,15 +197,15 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Get reminders to check your teeth',
+                        'Get reminders to brush your teeth',
                         style: TextStyle(fontSize: 14, color: subtitleText),
                       ),
                     ],
                   ),
                 ),
                 Switch(
-                  value: _checkupReminders,
-                  onChanged: (v) => setState(() => _checkupReminders = v),
+                  value: _brushingReminders,
+                  onChanged: (v) => _setBrushingReminders(v),
                   activeColor: primaryGreen,
                 ),
               ],

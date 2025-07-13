@@ -29,9 +29,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _dailyTips = false;
   bool _checkupReminders = false;
 
-  // SharedPreferences keys (same as RemindersScreen)
+  // SharedPreferences keys (same as RemindersScreen and PermissionsScreen)
   static const String dailyTipsOptInKey = 'daily_tips_opt_in';
   static const String brushingOptInKey = 'brushing_opt_in';
+  static const String bracesKey = 'user_has_braces';
 
   String? _name;
   String? _email;
@@ -52,6 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadAge();
     _loadProfileImage();
     _loadReminderToggles(); // <-- Load toggles from SharedPreferences
+    _loadBracesPreference(); // <-- Load braces preference from SharedPreferences
     // Remove unnecessary local history entry to fix double back press
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusManager.instance.primaryFocus?.unfocus();
@@ -63,6 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.didChangeDependencies();
     // Reload toggles every time dependencies change (e.g., after coming back from RemindersScreen)
     _loadReminderToggles();
+    _loadBracesPreference();
   }
 
   Future<void> _loadAge() async {
@@ -120,6 +123,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<void> _loadBracesPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _wearBraces = prefs.getBool(bracesKey) ?? false;
+    });
+  }
+
   Future<void> _setDailyTips(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(dailyTipsOptInKey, value);
@@ -133,6 +143,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await prefs.setBool(brushingOptInKey, value);
     setState(() {
       _checkupReminders = value;
+    });
+  }
+
+  Future<void> _setBraces(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(bracesKey, value);
+    setState(() {
+      _wearBraces = value;
     });
   }
 
@@ -323,7 +341,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 Switch(
                   value: _wearBraces,
-                  onChanged: (v) => setState(() => _wearBraces = v),
+                  onChanged: (v) => _setBraces(v),
                   activeColor: primaryGreen,
                 ),
               ],
