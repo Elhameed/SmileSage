@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter/animation.dart';
 import '../main.dart'; // for routeObserver
+import '../services/profile_service.dart';
 
 class TipsScreen extends StatefulWidget {
   static const routeName = '/tips';
@@ -102,10 +103,41 @@ class _TipsScreenState extends State<TipsScreen>
     _brushingLogs.add(log);
     final jsonString = BrushingLog.listToJson(_brushingLogs);
     await prefs.setString(brushingLogsKey, jsonString);
+    // Sync to Firestore
+    try {
+      await ProfileService().saveBrushingLogsToCloud(_brushingLogs);
+    } catch (e) {
+      // Ignore if offline or not logged in
+    }
     setState(() {});
   }
 
   Future<void> loadBrushingLogs() async {
+    // Try to fetch from Firestore first
+    List<BrushingLog> cloudLogs = [];
+    try {
+      cloudLogs = await ProfileService().fetchBrushingLogsFromCloud();
+    } catch (e) {
+      // Ignore if offline or not logged in
+    }
+    if (cloudLogs.isNotEmpty) {
+      _brushingLogs = cloudLogs;
+      _brushingLogs.sort((a, b) => a.date.compareTo(b.date));
+      if (_brushingLogs.isNotEmpty) {
+        _lastBrushedDate = _brushingLogs.last.date;
+        _currentStreak = _calculateStreak(_brushingLogs);
+      } else {
+        _lastBrushedDate = null;
+        _currentStreak = 0;
+      }
+      // Save to local cache
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = BrushingLog.listToJson(_brushingLogs);
+      await prefs.setString(brushingLogsKey, jsonString);
+      setState(() {});
+      return;
+    }
+    // Fallback to local
     final prefs = await SharedPreferences.getInstance();
     final jsonString = prefs.getString(brushingLogsKey);
     if (jsonString != null) {

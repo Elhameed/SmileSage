@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/scan_result.dart';
+import '../models/brushing_log.dart';
 
 class ProfileService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -256,5 +257,28 @@ class ProfileService {
         .collection('scan_reports')
         .get();
     return query.docs.map((doc) => ScanResult.fromJson(doc.data())).toList();
+  }
+
+  /// Save brushing logs to Firestore (for streak sync)
+  Future<void> saveBrushingLogsToCloud(List<BrushingLog> logs) async {
+    if (!isAuthenticated) throw Exception('User not authenticated');
+    final userId = currentUserId!;
+    final logsJson = logs.map((log) => log.toJson()).toList();
+    await _firestore.collection('users').doc(userId).set({
+      'brushingLogs': logsJson,
+    }, SetOptions(merge: true));
+  }
+
+  /// Fetch brushing logs from Firestore
+  Future<List<BrushingLog>> fetchBrushingLogsFromCloud() async {
+    if (!isAuthenticated) throw Exception('User not authenticated');
+    final userId = currentUserId!;
+    final doc = await _firestore.collection('users').doc(userId).get();
+    final data = doc.data();
+    if (data == null || data['brushingLogs'] == null) return [];
+    final logsJson = data['brushingLogs'] as List<dynamic>;
+    return logsJson
+        .map((e) => BrushingLog.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 }
