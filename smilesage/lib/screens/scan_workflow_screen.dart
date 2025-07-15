@@ -97,6 +97,7 @@ class _ScanWorkflowScreenState extends State<ScanWorkflowScreen> {
                     ).pushReplacementNamed(GeneralScanScreen.routeName),
                   ),
                   const SizedBox(height: 16),
+/*
                   _ScanOptionTile(
                     title: AppLocalizations.of(context)!.bracesScan,
                     description: AppLocalizations.of(context)!.bracesScanDesc,
@@ -105,6 +106,7 @@ class _ScanWorkflowScreenState extends State<ScanWorkflowScreen> {
                       // TODO: navigate to BracesScanScreen
                     },
                   ),
+*/
                 ],
               ),
             ),
