@@ -125,7 +125,7 @@ class _ScanWorkflowScreenState extends State<ScanWorkflowScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 36),
+            const SizedBox(height: 48),
           ],
         ),
       ),
