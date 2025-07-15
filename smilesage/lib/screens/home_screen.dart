@@ -48,6 +48,10 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   bool _loadingTips = true;
   Clinic? _nearestClinic;
   bool _loadingClinic = true;
+  int _brushingThisWeek = 0;
+  final int _brushingGoal = 7;
+  int _scansThisMonth = 0;
+  final int _scanGoal = 4;
   // Remove _selectedLocale from state, use widget.currentLocale instead
 
   @override
@@ -106,9 +110,26 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
       logs.sort((a, b) => b.date.compareTo(a.date));
     }
     int streak = _calculateStreak(logs);
+    _calculateWeeklyBrushing(logs);
     setState(() {
       _brushingStreak = streak;
       _loadingStreak = false;
+    });
+  }
+
+  void _calculateWeeklyBrushing(List<BrushingLog> logs) {
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+    final brushedDays = logs
+        .where((log) =>
+            log.date.isAfter(startOfWeek.subtract(const Duration(days: 1))) &&
+            log.date.isBefore(endOfWeek.add(const Duration(days: 1))))
+        .map((log) => DateTime(log.date.year, log.date.month, log.date.day))
+        .toSet()
+        .length;
+    setState(() {
+      _brushingThisWeek = brushedDays;
     });
   }
 
@@ -131,9 +152,23 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     for (final scan in [...localScans, ...cloudScans]) {
       allScans[scan.timestamp.toIso8601String()] = scan;
     }
+    final allScanList = allScans.values.toList();
+    _calculateMonthlyScans(allScanList);
     setState(() {
-      _recentScans = allScans.values.toList().reversed.take(3).toList();
+      _recentScans = allScanList.reversed.take(3).toList();
       _loadingScans = false;
+    });
+  }
+
+  void _calculateMonthlyScans(List<ScanResult> scans) {
+    final now = DateTime.now();
+    final scansThisMonth = scans
+        .where((scan) =>
+            scan.timestamp.year == now.year &&
+            scan.timestamp.month == now.month)
+        .length;
+    setState(() {
+      _scansThisMonth = scansThisMonth;
     });
   }
 
@@ -963,7 +998,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                   ),
                 ),
                 const SizedBox(height: 18),
-                // Progress Summary Placeholder Cards
+                // Progress Summary Cards (dynamic)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
@@ -991,11 +1026,19 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                               ),
                               SizedBox(height: 12),
                               Text(
-                                '75%',
+                                '${((_brushingThisWeek / _brushingGoal) * 100).round()}%',
                                 style: TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF0A244E),
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                '${_brushingThisWeek} of $_brushingGoal days brushed',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF4CAF50),
                                 ),
                               ),
                             ],
@@ -1025,11 +1068,19 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                               ),
                               SizedBox(height: 12),
                               Text(
-                                '50%',
+                                '${((_scansThisMonth / _scanGoal) * 100).round()}%',
                                 style: TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF0A244E),
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                '${_scansThisMonth} of $_scanGoal scans completed',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF4CAF50),
                                 ),
                               ),
                             ],
