@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/profile_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PermissionsScreen extends StatefulWidget {
   static const routeName = '/permissions';
@@ -115,9 +116,9 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
             // extra space below back arrow
             const SizedBox(height: 16),
             // Heading text
-            const Text(
-              "Let's get started",
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.letsGetStarted,
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: headingText,
@@ -125,9 +126,9 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
             ),
             const SizedBox(height: 8),
 
-            const Text(
-              'We’ll need to ask for a few permissions before\nwe can get started.',
-              style: TextStyle(fontSize: 16, color: bodyText),
+            Text(
+              AppLocalizations.of(context)!.permissionsIntro,
+              style: const TextStyle(fontSize: 16, color: bodyText),
             ),
 
             const SizedBox(height: 32),
@@ -138,19 +139,20 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
-                        'Do you wear braces?',
-                        style: TextStyle(
+                        AppLocalizations.of(context)!.doYouWearBraces,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: headingText,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'This will help us provide better recommendations.',
-                        style: TextStyle(fontSize: 14, color: subtitleText),
+                        AppLocalizations.of(context)!.bracesHelp,
+                        style:
+                            const TextStyle(fontSize: 14, color: subtitleText),
                       ),
                     ],
                   ),
@@ -165,9 +167,9 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
 
             const SizedBox(height: 32),
             // Notification preferences heading
-            const Text(
-              'Notification preferences',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.notificationPreferences,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: headingText,
@@ -182,19 +184,20 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
-                        'Daily tips',
-                        style: TextStyle(
+                        AppLocalizations.of(context)!.dailyTips,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: headingText,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'Receive dental care tips every day',
-                        style: TextStyle(fontSize: 14, color: subtitleText),
+                        AppLocalizations.of(context)!.receiveDailyTips,
+                        style:
+                            const TextStyle(fontSize: 14, color: subtitleText),
                       ),
                     ],
                   ),
@@ -215,19 +218,20 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text(
-                        'Brushing reminders',
-                        style: TextStyle(
+                        AppLocalizations.of(context)!.brushingReminders,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: headingText,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
-                        'Get reminders to brush your teeth',
-                        style: TextStyle(fontSize: 14, color: subtitleText),
+                        AppLocalizations.of(context)!.getBrushingReminders,
+                        style:
+                            const TextStyle(fontSize: 14, color: subtitleText),
                       ),
                     ],
                   ),
@@ -255,9 +259,9 @@ class _PermissionsScreenState extends State<PermissionsScreen> {
               shape: const StadiumBorder(),
               elevation: 4,
             ),
-            child: const Text(
-              'Done',
-              style: TextStyle(
+            child: Text(
+              AppLocalizations.of(context)!.done,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: headingText,

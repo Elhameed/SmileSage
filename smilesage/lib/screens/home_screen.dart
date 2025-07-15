@@ -18,13 +18,18 @@ import 'package:shimmer/shimmer.dart';
 import 'package:flutter/widgets.dart';
 import 'scan_detail_screen.dart';
 import '../services/profile_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // Add a global RouteObserver in main.dart and import it here
 import '../main.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home';
-  const HomeScreen({Key? key}) : super(key: key);
+  final void Function(Locale) onLocaleChanged;
+  final Locale currentLocale;
+  const HomeScreen(
+      {Key? key, required this.onLocaleChanged, required this.currentLocale})
+      : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -43,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   bool _loadingTips = true;
   Clinic? _nearestClinic;
   bool _loadingClinic = true;
+  // Remove _selectedLocale from state, use widget.currentLocale instead
 
   @override
   void initState() {
@@ -298,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Bar: Avatar, greeting, notification
+                // Top Bar: Avatar, greeting, notification, language dropdown
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -326,13 +332,39 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Hi, $firstName',
+                          AppLocalizations.of(context)!.hiUser(firstName),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: darkText,
                           ),
                         ),
+                      ),
+                      // Language dropdown
+                      DropdownButton<Locale>(
+                        value: widget.currentLocale,
+                        underline: const SizedBox(),
+                        icon: const Icon(Icons.language, color: darkText),
+                        items: const [
+                          DropdownMenuItem(
+                            value: Locale('en'),
+                            child: Text('EN'),
+                          ),
+                          DropdownMenuItem(
+                            value: Locale('fr'),
+                            child: Text('FR'),
+                          ),
+                        ],
+                        onChanged: (Locale? newLocale) {
+                          if (newLocale != null) {
+                            widget.onLocaleChanged(newLocale);
+                          }
+                        },
+                        style: const TextStyle(
+                          color: darkText,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        dropdownColor: Colors.white,
                       ),
                       IconButton(
                         icon: const Icon(Icons.notifications_none,
@@ -350,9 +382,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                 // Welcome Header
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: const Text(
-                    'Keep your smile healthy!',
-                    style: TextStyle(
+                  child: Text(
+                    AppLocalizations.of(context)!.keepSmileHealthy,
+                    style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: darkText,
@@ -399,9 +431,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Brushing Streak',
-                                style: TextStyle(
+                              Text(
+                                AppLocalizations.of(context)!.brushingStreak,
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF0A244E),
@@ -410,8 +442,10 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                               const SizedBox(height: 4),
                               Text(
                                 _brushingStreak > 0
-                                    ? 'Keep up the good work!'
-                                    : 'Start brushing to build your streak!',
+                                    ? AppLocalizations.of(context)!
+                                        .keepUpGoodWork
+                                    : AppLocalizations.of(context)!
+                                        .startBrushingStreak,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Color(0xFF4CAF50), // green
@@ -424,8 +458,10 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                   Expanded(
                                     child: Text(
                                       _brushingStreak > 0
-                                          ? '${_brushingStreak}-day streak'
-                                          : 'No streak yet',
+                                          ? AppLocalizations.of(context)!
+                                              .nDayStreak(_brushingStreak)
+                                          : AppLocalizations.of(context)!
+                                              .noStreakYet,
                                       style: const TextStyle(
                                         fontSize: 16,
                                         color: Color(0xFF4CAF50), // green
@@ -446,9 +482,10 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 18, vertical: 10),
                                     ),
-                                    child: const Text(
-                                      "Track Today's Brushing",
-                                      style: TextStyle(
+                                    child: Text(
+                                      AppLocalizations.of(context)!
+                                          .trackTodaysBrushing,
+                                      style: const TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
                                         color: Colors.black,
@@ -473,9 +510,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Recent Activity',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)!.recentActivity,
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF0A244E),
@@ -489,7 +526,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                             ),
                           );
                         },
-                        child: const Text('View All'),
+                        child: Text(AppLocalizations.of(context)!.viewAll),
                       ),
                     ],
                   ),
@@ -519,7 +556,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                       : (_recentScans.isEmpty
                           ? Center(
                               child: Text(
-                                'No scan history yet.',
+                                AppLocalizations.of(context)!.noScanHistory,
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey[600],
@@ -537,6 +574,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                               itemBuilder: (context, index) {
                                 final scan = _recentScans[index];
                                 final scanNumber = 'Scan Result  ${index + 1}';
+                                final scanNumberLocalized =
+                                    AppLocalizations.of(context)!
+                                        .scanResult((index + 1).toString());
                                 final formattedDate =
                                     _formatDate(scan.timestamp);
                                 return Container(
@@ -600,7 +640,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                scanNumber,
+                                                scanNumberLocalized,
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.w600,
                                                   fontSize: 15,
@@ -631,7 +671,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    "Today's Tip",
+                    AppLocalizations.of(context)!.todaysTip,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -719,9 +759,10 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                               horizontal: 20, vertical: 10),
                                           elevation: 0,
                                         ),
-                                        child: const Text(
-                                          'Read More',
-                                          style: TextStyle(
+                                        child: Text(
+                                          AppLocalizations.of(context)!
+                                              .readMore,
+                                          style: const TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w600,
                                             color: darkText,
@@ -756,7 +797,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    'Clinics Near Me',
+                    AppLocalizations.of(context)!.clinicsNearMe,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -794,8 +835,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                             ],
                           ),
                           child: _nearestClinic == null
-                              ? const Center(
-                                  child: Text('No clinics found nearby'))
+                              ? Center(
+                                  child: Text(AppLocalizations.of(context)!
+                                      .noClinicsNearby))
                               : Row(
                                   children: [
                                     // Clinic info
@@ -852,8 +894,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                                         vertical: 10),
                                                 elevation: 0,
                                               ),
-                                              child: const Text(
-                                                'View Details',
+                                              child: Text(
+                                                AppLocalizations.of(context)!
+                                                    .viewDetails,
                                                 style: TextStyle(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w600,
@@ -911,7 +954,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    'Progress Summary',
+                    AppLocalizations.of(context)!.progressSummary,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -937,9 +980,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Text(
-                                'Weekly Goal',
+                                AppLocalizations.of(context)!.weeklyGoal,
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w600,
@@ -971,9 +1014,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               Text(
-                                'Monthly Goal',
+                                AppLocalizations.of(context)!.monthlyGoal,
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w600,
@@ -1012,26 +1055,26 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
         showUnselectedLabels: true,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_home.png')),
-            label: 'Home',
+            icon: ImageIcon(const AssetImage('assets/images/icon_home.png')),
+            label: AppLocalizations.of(context)!.home,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_tips.png')),
-            label: 'Tips',
+            icon: ImageIcon(const AssetImage('assets/images/icon_tips.png')),
+            label: AppLocalizations.of(context)!.tips,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_scan.png')),
-            label: 'Scan',
+            icon: ImageIcon(const AssetImage('assets/images/icon_scan.png')),
+            label: AppLocalizations.of(context)!.scan,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_clinics.png')),
-            label: 'Clinics',
+            icon: ImageIcon(const AssetImage('assets/images/icon_clinics.png')),
+            label: AppLocalizations.of(context)!.clinics,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_learn.png')),
-            label: 'Learn',
+            icon: ImageIcon(const AssetImage('assets/images/icon_learn.png')),
+            label: AppLocalizations.of(context)!.learn,
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChatScreen extends StatefulWidget {
   static const routeName = '/chat';
@@ -12,9 +13,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final List<_ChatMessage> _messages = [
-    _ChatMessage(text: 'Hi there! How can I help you today?', isUser: false),
-  ];
+  final List<_ChatMessage> _messages = [];
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollCtrl = ScrollController();
   bool _isSending = false;
@@ -32,26 +31,28 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    // Extract the arguments passed from the scan screen
+    _messages.clear(); // Always start fresh
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final arguments = ModalRoute.of(context)?.settings.arguments;
-      if (arguments != null && arguments is Map<String, dynamic>) {
-        setState(() {
+      setState(() {
+        _messages.add(_ChatMessage(
+          text: AppLocalizations.of(context)!.chatGreeting,
+          isUser: false,
+        ));
+        if (arguments != null && arguments is Map<String, dynamic>) {
           _scanContext = arguments;
-          // Add a context message at the beginning of the chat
           final condition = _scanContext!['condition'] ?? 'a dental condition';
           final confidence = _scanContext!['confidence'] != null
               ? '${(_scanContext!['confidence']! * 100).toStringAsFixed(1)}% confidence'
               : '';
-          _messages.insert(
-              1,
-              _ChatMessage(
-                text:
-                    "I see you recently scanned for $condition ($confidence). How can I help you with this or other dental concerns?",
-                isUser: false,
-              ));
-        });
-      }
+          _messages.add(_ChatMessage(
+            text: AppLocalizations.of(context)!
+                .scanContextMessage(condition, confidence),
+            isUser: false,
+          ));
+        }
+      });
     });
     _loadProfileImage();
   }
@@ -112,10 +113,11 @@ class _ChatScreenState extends State<ChatScreen> {
           ));
         });
       } else {
-        _showError('API Error: ${response.statusCode}');
+        _showError(AppLocalizations.of(context)!
+            .chatError('API Error: ${response.statusCode}'));
       }
     } catch (e) {
-      _showError('Error: $e');
+      _showError(AppLocalizations.of(context)!.chatError('Error: $e'));
     } finally {
       setState(() => _isSending = false);
       _scrollToBottom();
@@ -125,7 +127,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _showError(String message) {
     setState(() {
       _messages.add(_ChatMessage(
-        text: "Sorry, I couldn't process that. $message",
+        text: message,
         isUser: false,
       ));
     });
@@ -191,7 +193,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 itemCount: _messages.length,
                 itemBuilder: (ctx, i) {
                   final msg = _messages[i];
-                  final author = msg.isUser ? 'You' : 'SmileSage';
+                  final author = msg.isUser
+                      ? AppLocalizations.of(context)!.you
+                      : AppLocalizations.of(context)!.smileSage;
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     child: Column(
@@ -280,7 +284,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 controller: _controller,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
-                  hintText: 'Type a message',
+                  hintText: AppLocalizations.of(context)!.typeAMessage,
                   filled: true,
                   fillColor: inputFill,
                   contentPadding: const EdgeInsets.symmetric(

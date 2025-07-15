@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/notification_service.dart';
 import '../services/profile_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RemindersScreen extends StatefulWidget {
   static const routeName = '/reminders';
@@ -43,14 +44,14 @@ class _RemindersScreenState extends State<RemindersScreen> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Notification Tapped'),
+          title: Text(AppLocalizations.of(context)!.notificationTapped),
           content: Text(payload != null && payload.isNotEmpty
-              ? 'Payload: $payload'
-              : 'You tapped a SmileSage notification!'),
+              ? AppLocalizations.of(context)!.payload(payload)
+              : AppLocalizations.of(context)!.notificationTappedDefault),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ],
         ),
@@ -102,21 +103,23 @@ class _RemindersScreenState extends State<RemindersScreen> {
       await NotificationService().scheduleDailyNotification(
         id: 1,
         time: _dailyTipsTime,
-        title: 'Daily Dental Tip',
-        body: 'Check out your daily dental tip in SmileSage!',
+        title: AppLocalizations.of(context)!.dailyTipReminders,
+        body: AppLocalizations.of(context)!.personalizedTips,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'Daily tip reminder scheduled for ${_dailyTipsTime.format(context)}')),
+              content: Text(AppLocalizations.of(context)!
+                  .dailyTipReminderScheduled(_dailyTipsTime.format(context)))),
         );
       }
     } else {
       await NotificationService().cancelNotification(1);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Daily tip reminder cancelled')),
+          SnackBar(
+              content: Text(
+                  AppLocalizations.of(context)!.dailyTipReminderCancelled)),
         );
       }
     }
@@ -132,14 +135,14 @@ class _RemindersScreenState extends State<RemindersScreen> {
       await NotificationService().scheduleDailyNotification(
         id: 1,
         time: time,
-        title: 'Daily Dental Tip',
-        body: 'Check out your daily dental tip in SmileSage!',
+        title: AppLocalizations.of(context)!.dailyTipReminders,
+        body: AppLocalizations.of(context)!.personalizedTips,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'Daily tip reminder rescheduled for ${time.format(context)}')),
+              content: Text(AppLocalizations.of(context)!
+                  .dailyTipReminderRescheduled(time.format(context)))),
         );
       }
     }
@@ -155,14 +158,14 @@ class _RemindersScreenState extends State<RemindersScreen> {
       await NotificationService().scheduleDailyNotification(
         id: 2,
         time: time,
-        title: 'Brushing Reminder',
-        body: 'Time to brush your teeth! Keep your smile healthy.',
+        title: AppLocalizations.of(context)!.brushingReminder,
+        body: AppLocalizations.of(context)!.timeToBrush,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'Brushing reminder rescheduled for ${time.format(context)}')),
+              content: Text(AppLocalizations.of(context)!
+                  .brushingReminderRescheduled(time.format(context)))),
         );
       }
     }
@@ -187,21 +190,23 @@ class _RemindersScreenState extends State<RemindersScreen> {
       await NotificationService().scheduleDailyNotification(
         id: 2,
         time: _brushingTime,
-        title: 'Brushing Reminder',
-        body: 'Time to brush your teeth! Keep your smile healthy.',
+        title: AppLocalizations.of(context)!.brushingReminder,
+        body: AppLocalizations.of(context)!.timeToBrush,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'Brushing reminder scheduled for ${_brushingTime.format(context)}')),
+              content: Text(AppLocalizations.of(context)!
+                  .brushingReminderScheduled(_brushingTime.format(context)))),
         );
       }
     } else {
       await NotificationService().cancelNotification(2);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Brushing reminder cancelled')),
+          SnackBar(
+              content: Text(
+                  AppLocalizations.of(context)!.brushingReminderCancelled)),
         );
       }
     }
@@ -241,9 +246,9 @@ class _RemindersScreenState extends State<RemindersScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: BackButton(color: headingText),
-        title: const Text(
-          'Reminders',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.reminders,
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.black,
@@ -258,9 +263,9 @@ class _RemindersScreenState extends State<RemindersScreen> {
           children: [
             const SizedBox(height: 24),
             // Upcoming section
-            const Text(
-              'Upcoming',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.upcoming,
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: headingText,
@@ -274,8 +279,8 @@ class _RemindersScreenState extends State<RemindersScreen> {
                 Expanded(
                   child: _ReminderToggleTile(
                     icon: Icons.notifications,
-                    label: 'Daily Tip Reminders',
-                    sublabel: 'Daily',
+                    label: AppLocalizations.of(context)!.dailyTipReminders,
+                    sublabel: AppLocalizations.of(context)!.daily,
                     value: _dailyTips,
                     onChanged: (v) => _setOptInStatus(v),
                   ),
@@ -304,8 +309,8 @@ class _RemindersScreenState extends State<RemindersScreen> {
                 Expanded(
                   child: _ReminderToggleTile(
                     icon: Icons.brush,
-                    label: 'Teeth Brushing Reminders',
-                    sublabel: 'Daily',
+                    label: AppLocalizations.of(context)!.teethBrushingReminders,
+                    sublabel: AppLocalizations.of(context)!.daily,
                     value: _bracesCleaning,
                     onChanged: (v) => _setBracesCleaning(v),
                   ),
@@ -331,17 +336,17 @@ class _RemindersScreenState extends State<RemindersScreen> {
             // 6–8 Week Check-Up
             _ReminderToggleTile(
               icon: Icons.calendar_today,
-              label: '6-8 Week Check-Up',
-              sublabel: 'Every 6-8 weeks',
+              label: AppLocalizations.of(context)!.sixEightWeekCheckup,
+              sublabel: AppLocalizations.of(context)!.everySixEightWeeks,
               value: _checkup,
               onChanged: (v) => setState(() => _checkup = v),
             ),
 
             const SizedBox(height: 32),
             // Actions section
-            const Text(
-              'Actions',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.actions,
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: headingText,
@@ -351,7 +356,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
 
             _ActionTile(
               icon: Icons.snooze,
-              label: 'Snooze',
+              label: AppLocalizations.of(context)!.snooze,
               onTap: () {
                 // TODO: Snooze logic
               },
@@ -360,7 +365,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
 
             _ActionTile(
               icon: Icons.edit,
-              label: 'Edit',
+              label: AppLocalizations.of(context)!.edit,
               onTap: () {
                 // TODO: Edit logic
               },
@@ -369,7 +374,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
 
             _ActionTile(
               icon: Icons.delete,
-              label: 'Delete',
+              label: AppLocalizations.of(context)!.delete,
               onTap: () {
                 // TODO: Delete logic
               },
@@ -378,24 +383,24 @@ class _RemindersScreenState extends State<RemindersScreen> {
             Center(
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.notifications_active),
-                label: const Text('Test Notification'),
+                label: Text(AppLocalizations.of(context)!.testNotification),
                 onPressed: () async {
                   await NotificationService()
                       .flutterLocalNotificationsPlugin
                       .show(
                         999,
-                        'Test Notification',
-                        'This is a test notification from SmileSage.',
-                        const NotificationDetails(
+                        AppLocalizations.of(context)!.testNotification,
+                        AppLocalizations.of(context)!.testNotificationBody,
+                        NotificationDetails(
                           android: AndroidNotificationDetails(
                             'smilesage_channel',
-                            'SmileSage Reminders',
-                            channelDescription:
-                                'Reminders for daily tips and brushing',
+                            AppLocalizations.of(context)!.smileSageReminders,
+                            channelDescription: AppLocalizations.of(context)!
+                                .remindersChannelDescription,
                             importance: Importance.max,
                             priority: Priority.high,
                           ),
-                          iOS: DarwinNotificationDetails(),
+                          iOS: const DarwinNotificationDetails(),
                         ),
                       );
                 },
@@ -413,26 +418,26 @@ class _RemindersScreenState extends State<RemindersScreen> {
         unselectedItemColor: goldText,
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_home.png')),
-            label: 'Home',
+            icon: const ImageIcon(AssetImage('assets/images/icon_home.png')),
+            label: AppLocalizations.of(context)!.home,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_tips.png')),
-            label: 'Tips',
+            icon: const ImageIcon(AssetImage('assets/images/icon_tips.png')),
+            label: AppLocalizations.of(context)!.tips,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_scan.png')),
-            label: 'Scan',
+            icon: const ImageIcon(AssetImage('assets/images/icon_scan.png')),
+            label: AppLocalizations.of(context)!.scan,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_clinics.png')),
-            label: 'Clinics',
+            icon: const ImageIcon(AssetImage('assets/images/icon_clinics.png')),
+            label: AppLocalizations.of(context)!.clinics,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_learn.png')),
-            label: 'Learn',
+            icon: const ImageIcon(AssetImage('assets/images/icon_learn.png')),
+            label: AppLocalizations.of(context)!.learn,
           ),
         ],
       ),

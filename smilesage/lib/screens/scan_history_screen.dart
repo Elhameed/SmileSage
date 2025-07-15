@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/scan_result.dart';
 import 'scan_detail_screen.dart';
 import '../services/profile_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ScanHistoryScreen extends StatefulWidget {
   static const routeName = '/scan-history';
@@ -68,9 +69,9 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
         elevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text(
-          'Scan History',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.scanHistory,
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -83,9 +84,12 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error:  {snapshot.error}'));
+            return Center(
+                child: Text(AppLocalizations.of(context)!
+                    .errorWithMessage(snapshot.error.toString())));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No scan history yet.'));
+            return Center(
+                child: Text(AppLocalizations.of(context)!.noScanHistory));
           }
 
           final scans = snapshot.data!;
@@ -97,6 +101,8 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
             itemBuilder: (context, index) {
               final scan = scans[index];
               final scanNumber = 'Scan #${index + 1}';
+              final scanNumberText = AppLocalizations.of(context)!
+                  .scanNumber((index + 1).toString());
               final formattedDate = _formatDate(scan.timestamp);
 
               return Dismissible(
@@ -114,7 +120,9 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                     _historyFuture = _loadScanHistory();
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Scan deleted')),
+                    SnackBar(
+                        content:
+                            Text(AppLocalizations.of(context)!.scanDeleted)),
                   );
                 },
                 child: Container(
@@ -142,7 +150,7 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
                       ),
                     ),
                     title: Text(
-                      scanNumber,
+                      scanNumberText,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 17,
@@ -194,19 +202,20 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
 
   String _formatDate(DateTime date) {
     // Example: July 20, 2024
+    final loc = AppLocalizations.of(context)!;
     final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
+      loc.monthJanuary,
+      loc.monthFebruary,
+      loc.monthMarch,
+      loc.monthApril,
+      loc.monthMay,
+      loc.monthJune,
+      loc.monthJuly,
+      loc.monthAugust,
+      loc.monthSeptember,
+      loc.monthOctober,
+      loc.monthNovember,
+      loc.monthDecember,
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
@@ -215,7 +224,8 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
     // Example: 02:15 PM
     int hour = date.hour;
     final minute = date.minute.toString().padLeft(2, '0');
-    final ampm = hour >= 12 ? 'PM' : 'AM';
+    final loc = AppLocalizations.of(context)!;
+    final ampm = hour >= 12 ? loc.pm : loc.am;
     hour = hour % 12;
     if (hour == 0) hour = 12;
     return '$hour:$minute $ampm';

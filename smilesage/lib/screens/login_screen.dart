@@ -5,6 +5,7 @@ import 'permissions_screen.dart';
 import 'home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/profile_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
@@ -38,14 +39,16 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordCtrl.text.trim();
     bool hasError = false;
     if (email.isEmpty) {
-      setState(() => _emailError = 'Email is required');
+      setState(() => _emailError = AppLocalizations.of(context)!.emailRequired);
       hasError = true;
     } else if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+').hasMatch(email)) {
-      setState(() => _emailError = 'Enter a valid email address');
+      setState(
+          () => _emailError = AppLocalizations.of(context)!.enterValidEmail);
       hasError = true;
     }
     if (password.isEmpty) {
-      setState(() => _passwordError = 'Password is required');
+      setState(() =>
+          _passwordError = AppLocalizations.of(context)!.passwordRequired);
       hasError = true;
     }
     if (hasError) {
@@ -61,19 +64,19 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
       }
     } on FirebaseAuthException catch (e) {
-      String message = 'Login failed';
+      String message = AppLocalizations.of(context)!.loginFailed;
       if (e.code == 'user-not-found') {
-        message = 'No user found for that email.';
+        message = AppLocalizations.of(context)!.noUserFound;
       } else if (e.code == 'wrong-password') {
-        message = 'Incorrect password.';
+        message = AppLocalizations.of(context)!.incorrectPassword;
       } else if (e.code == 'invalid-email') {
-        message = 'Invalid email address.';
+        message = AppLocalizations.of(context)!.invalidEmail;
       } else if (e.code == 'user-disabled') {
-        message = 'This user has been disabled.';
+        message = AppLocalizations.of(context)!.userDisabled;
       }
       _showError(context, message);
     } catch (e) {
-      _showError(context, 'An unexpected error occurred.');
+      _showError(context, AppLocalizations.of(context)!.unexpectedError);
     } finally {
       setState(() => _loading = false);
     }
@@ -105,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Reset Password'),
+              title: Text(AppLocalizations.of(context)!.resetPassword),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -113,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
-                      labelText: 'Email',
+                      labelText: AppLocalizations.of(context)!.email,
                       errorText: errorText,
                     ),
                   ),
@@ -122,17 +125,19 @@ class _LoginScreenState extends State<LoginScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                  child: Text(AppLocalizations.of(context)!.cancel),
                 ),
                 ElevatedButton(
                   onPressed: () async {
                     final email = emailController.text.trim();
                     if (email.isEmpty) {
-                      setState(() => errorText = 'Email is required');
+                      setState(() => errorText =
+                          AppLocalizations.of(context)!.emailRequired);
                       return;
                     } else if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+')
                         .hasMatch(email)) {
-                      setState(() => errorText = 'Enter a valid email address');
+                      setState(() => errorText =
+                          AppLocalizations.of(context)!.enterValidEmail);
                       return;
                     }
                     try {
@@ -140,21 +145,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           .sendPasswordResetEmail(email: email);
                       Navigator.of(context).pop();
                       _showError(context,
-                          'Password reset email sent! Check your inbox.');
+                          AppLocalizations.of(context)!.passwordResetSent);
                     } on FirebaseAuthException catch (e) {
-                      String message = 'Failed to send reset email.';
+                      String message =
+                          AppLocalizations.of(context)!.failedToSendReset;
                       if (e.code == 'user-not-found') {
-                        message = 'No user found for that email.';
+                        message = AppLocalizations.of(context)!.noUserFound;
                       } else if (e.code == 'invalid-email') {
-                        message = 'Invalid email address.';
+                        message = AppLocalizations.of(context)!.invalidEmail;
                       }
                       setState(() => errorText = message);
                     } catch (e) {
-                      setState(
-                          () => errorText = 'An unexpected error occurred.');
+                      setState(() => errorText =
+                          AppLocalizations.of(context)!.unexpectedError);
                     }
                   },
-                  child: const Text('Send'),
+                  child: Text(AppLocalizations.of(context)!.send),
                 ),
               ],
             );
@@ -187,9 +193,9 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'Login',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.login,
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -208,10 +214,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 32), // extra breathing room
                     // Welcome text
-                    const Text(
-                      'Welcome back',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    Text(
+                      AppLocalizations.of(context)!.welcomeBack,
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 24),
 
@@ -220,7 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _emailCtrl,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        hintText: 'Email Address',
+                        hintText: AppLocalizations.of(context)!.email,
                         hintStyle: const TextStyle(fontSize: 14),
                         filled: true,
                         fillColor: inputFill,
@@ -238,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _passwordCtrl,
                       obscureText: _obscure,
                       decoration: InputDecoration(
-                        hintText: 'Password',
+                        hintText: AppLocalizations.of(context)!.password,
                         hintStyle: const TextStyle(fontSize: 14),
                         filled: true,
                         fillColor: inputFill,
@@ -262,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: TextButton(
                         onPressed: _showForgotPasswordDialog,
                         child: Text(
-                          'Forgot Password?',
+                          AppLocalizations.of(context)!.forgotPassword,
                           style: TextStyle(color: linkText),
                         ),
                       ),
@@ -287,9 +293,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Text(
-                                'Login',
-                                style: TextStyle(
+                            : Text(
+                                AppLocalizations.of(context)!.login,
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: navyText,
                                 ),
@@ -298,7 +304,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
 
                     const SizedBox(height: 16),
-                    const Center(child: Text('Or')),
+                    Center(
+                        child:
+                            Text(AppLocalizations.of(context)!.orSignInWith)),
                     const SizedBox(height: 16),
 
                     // Google Continue
@@ -312,9 +320,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 24,
                           height: 24,
                         ),
-                        label: const Text(
-                          'Continue with Google',
-                          style: TextStyle(
+                        label: Text(
+                          AppLocalizations.of(context)!.signIn,
+                          style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             color: navyText,
                           ),
@@ -336,7 +344,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           context,
                         ).pushReplacementNamed(SignUpScreen.routeName),
                         child: Text(
-                          "Don't have an account? Sign up",
+                          AppLocalizations.of(context)!.dontHaveAccount +
+                              ' ' +
+                              AppLocalizations.of(context)!.signUp,
                           style: TextStyle(color: linkText),
                         ),
                       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/clinic.dart';
 import '../services/location_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ClinicDetailScreen extends StatelessWidget {
   static const routeName = '/clinic-detail';
@@ -22,9 +23,10 @@ class ClinicDetailScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const BackButton(color: Colors.black),
-        title: const Text(
-          'Clinic Details',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          AppLocalizations.of(context)!.clinicDetails,
+          style:
+              const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -103,7 +105,7 @@ class ClinicDetailScreen extends StatelessWidget {
                         if (clinic.reviewCount != null) ...[
                           const SizedBox(width: 4),
                           Text(
-                            '(${clinic.reviewCount} reviews)',
+                            '(${clinic.reviewCount} ${AppLocalizations.of(context)!.reviews})',
                             style: const TextStyle(
                               fontSize: 14,
                               color: subtitleText,
@@ -161,8 +163,8 @@ class ClinicDetailScreen extends StatelessWidget {
 
                   // Contact Information
                   if (clinic.phoneNumber != null || clinic.website != null) ...[
-                    const Text(
-                      'Contact Information',
+                    Text(
+                      AppLocalizations.of(context)!.contactInformation,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -173,14 +175,14 @@ class ClinicDetailScreen extends StatelessWidget {
                     if (clinic.phoneNumber != null)
                       _ContactTile(
                         icon: Icons.phone,
-                        title: 'Phone',
+                        title: AppLocalizations.of(context)!.phone,
                         subtitle: clinic.phoneNumber!,
                         onTap: () => _launchUrl('tel:${clinic.phoneNumber}'),
                       ),
                     if (clinic.website != null)
                       _ContactTile(
                         icon: Icons.language,
-                        title: 'Website',
+                        title: AppLocalizations.of(context)!.website,
                         subtitle: clinic.website!,
                         onTap: () => _launchUrl(clinic.website!),
                       ),
@@ -190,8 +192,8 @@ class ClinicDetailScreen extends StatelessWidget {
                   // Services
                   if (clinic.services != null &&
                       clinic.services!.isNotEmpty) ...[
-                    const Text(
-                      'Services',
+                    Text(
+                      AppLocalizations.of(context)!.services,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -249,7 +251,9 @@ class ClinicDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          clinic.isOpen ? 'Open Now' : 'Closed',
+                          clinic.isOpen
+                              ? AppLocalizations.of(context)!.openNow
+                              : AppLocalizations.of(context)!.closed,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -291,8 +295,8 @@ class ClinicDetailScreen extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text(
-                  'Get Directions',
+                child: Text(
+                  AppLocalizations.of(context)!.getDirections,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -307,8 +311,9 @@ class ClinicDetailScreen extends StatelessWidget {
                 onPressed: () {
                   // TODO: Implement booking functionality
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Booking feature coming soon!'),
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!
+                          .bookingFeatureComingSoon),
                     ),
                   );
                 },
@@ -319,8 +324,8 @@ class ClinicDetailScreen extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text(
-                  'Book Appointment',
+                child: Text(
+                  AppLocalizations.of(context)!.bookAppointment,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

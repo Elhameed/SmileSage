@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class WelcomeScreen extends StatelessWidget {
   static const routeName = '/welcome';
@@ -32,10 +33,10 @@ class WelcomeScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // Tagline in #004060
-                const Text(
-                  'AI-Powered Oral Health, One Scan at a Time.',
+                Text(
+                  AppLocalizations.of(context)!.welcomeTagline,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF004060),
@@ -61,8 +62,8 @@ class WelcomeScreen extends StatelessWidget {
                   backgroundColor: const Color(0xFF7CF4A4),
                   elevation: 4,
                 ),
-                child: const Text(
-                  'Get Started',
+                child: Text(
+                  AppLocalizations.of(context)!.getStarted,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,

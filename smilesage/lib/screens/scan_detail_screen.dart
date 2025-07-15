@@ -8,6 +8,7 @@ import '../services/auth_service.dart';
 import '../services/profile_service.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:open_file/open_file.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ScanDetailScreen extends StatelessWidget {
   static const routeName = '/scan-detail';
@@ -29,9 +30,9 @@ class ScanDetailScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text(
-          'Scan Details',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.scanDetails,
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -69,7 +70,9 @@ class ScanDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Confidence: ${(scanResult.confidence * 100).toStringAsFixed(0)}%',
+                      AppLocalizations.of(context)!.confidencePercent(
+                        (scanResult.confidence * 100).toStringAsFixed(0),
+                      ),
                       style: const TextStyle(
                         fontSize: 15,
                         color: Colors.green,
@@ -83,9 +86,9 @@ class ScanDetailScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Analysis Section
-            const Text(
-              'Analysis',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.analysis,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: navyText,
@@ -105,26 +108,26 @@ class ScanDetailScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Personalized Tips Section
-            const Text(
-              'Personalized Tips',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.personalizedTips,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: navyText,
               ),
             ),
             const SizedBox(height: 14),
-            _buildTip('Brush twice daily with fluoride toothpaste.'),
+            _buildTip(AppLocalizations.of(context)!.tipBrushTwice),
             const SizedBox(height: 14),
-            _buildTip('Floss daily to remove plaque between teeth.'),
+            _buildTip(AppLocalizations.of(context)!.tipFlossDaily),
             const SizedBox(height: 14),
-            _buildTip('Schedule a dental check-up within the next month.'),
+            _buildTip(AppLocalizations.of(context)!.tipDentalCheckup),
             const SizedBox(height: 24),
 
             // Scan Images Section
-            const Text(
-              'Scan Images',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.scanImages,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: navyText,
@@ -138,14 +141,14 @@ class ScanDetailScreen extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Original',
-                        style: TextStyle(
+                    Text(AppLocalizations.of(context)!.original,
+                        style: const TextStyle(
                           fontSize: 13,
                           color: primaryGreen,
                           fontWeight: FontWeight.w400,
                         )),
-                    const Text('Dental Scan',
-                        style: TextStyle(
+                    Text(AppLocalizations.of(context)!.dentalScan,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                           color: Colors.black,
@@ -172,14 +175,14 @@ class ScanDetailScreen extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Grad-CAM',
-                        style: TextStyle(
+                    Text(AppLocalizations.of(context)!.gradcam,
+                        style: const TextStyle(
                           fontSize: 13,
                           color: primaryGreen,
                           fontWeight: FontWeight.w400,
                         )),
-                    const Text('Heatmap Overlay',
-                        style: TextStyle(
+                    Text(AppLocalizations.of(context)!.heatmapOverlay,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                           color: Colors.black,
@@ -225,12 +228,12 @@ class ScanDetailScreen extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text(
-                      'Download PDF',
-                      style: TextStyle(
+                    child: Text(
+                      AppLocalizations.of(context)!.downloadPdf,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black, // changed from white to black
+                        color: Colors.black,
                       ),
                     ),
                   ),
@@ -278,23 +281,26 @@ class ScanDetailScreen extends StatelessWidget {
                               await showDialog(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: const Text('Success'),
-                                  content: const Text(
-                                      'Your scan report has been saved to your secure cloud storage. You can access it from any device.'),
+                                  title: Text(
+                                      AppLocalizations.of(context)!.success),
+                                  content: Text(AppLocalizations.of(context)!
+                                      .scanReportSavedDevice),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
                                           Navigator.of(context).pop(),
-                                      child: const Text('OK'),
+                                      child: Text(
+                                          AppLocalizations.of(context)!.ok),
                                     ),
                                   ],
                                 ),
                               );
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Report uploaded to cloud!')),
+                                  SnackBar(
+                                      content: Text(
+                                          AppLocalizations.of(context)!
+                                              .reportUploadedCloud)),
                                 );
                               }
                             }
@@ -320,12 +326,12 @@ class ScanDetailScreen extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text(
-                      'Save to Cloud',
-                      style: TextStyle(
+                    child: Text(
+                      AppLocalizations.of(context)!.saveToCloud,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black, // ensure text is black
+                        color: Colors.black,
                       ),
                     ),
                   ),
@@ -362,52 +368,53 @@ class ScanDetailScreen extends StatelessWidget {
 
   // Helper methods for consent dialogs
   Future<bool> _showPdfStorageConsentDialog(BuildContext context) async {
+    final loc = AppLocalizations.of(context)!;
     return await showDialog<bool>(
           context: context,
           barrierDismissible: false,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text(
-                'Save Report to Cloud',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              title: Text(
+                loc.saveReportToCloud,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              content: const Column(
+              content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Would you like to save this scan report to your secure cloud storage?',
-                    style: TextStyle(fontSize: 16),
+                    loc.saveReportToCloudQuestion,
+                    style: const TextStyle(fontSize: 16),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'This will:',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    loc.thisWill,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  SizedBox(height: 8),
-                  Text('• Store your report securely in Firebase'),
-                  Text('• Allow you to access it from any device'),
-                  Text('• Keep your data private and encrypted'),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
+                  Text('• ${loc.storeReportFirebase}'),
+                  Text('• ${loc.allowAccessAnyDevice}'),
+                  Text('• ${loc.keepDataPrivate}'),
+                  const SizedBox(height: 8),
                   Text(
-                    'You can delete this data anytime from your profile settings.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    loc.deleteDataAnytime,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Not Now'),
+                  child: Text(loc.notNow),
                 ),
                 ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(true),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF7CF4A4),
                   ),
-                  child: const Text(
-                    'Save to Cloud',
-                    style: TextStyle(
+                  child: Text(
+                    loc.saveToCloud,
+                    style: const TextStyle(
                         color: Colors.black, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -420,6 +427,7 @@ class ScanDetailScreen extends StatelessWidget {
 
   // Helper methods for PDF download dialogs
   void _showLoadingDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -429,7 +437,7 @@ class ScanDetailScreen extends StatelessWidget {
             children: [
               const CircularProgressIndicator(),
               const SizedBox(width: 20),
-              const Text('Generating PDF...'),
+              Text(loc.generatingPdf),
             ],
           ),
         );
@@ -438,26 +446,26 @@ class ScanDetailScreen extends StatelessWidget {
   }
 
   void _showSuccessDialog(BuildContext context, String pdfPath) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('PDF Generated Successfully'),
-          content:
-              const Text('Your scan report has been saved to your device.'),
+          title: Text(loc.pdfGeneratedSuccessfully),
+          content: Text(loc.scanReportSavedDevice),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('OK'),
+              child: Text(loc.ok),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 OpenFile.open(pdfPath);
               },
-              child: const Text('Open PDF'),
+              child: Text(loc.openPdf),
             ),
           ],
         );
@@ -466,19 +474,19 @@ class ScanDetailScreen extends StatelessWidget {
   }
 
   void _showErrorDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Error'),
-          content: const Text(
-              'Failed to generate PDF. Please check your storage permissions and try again.'),
+          title: Text(loc.error),
+          content: Text(loc.failedToGeneratePdf),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('OK'),
+              child: Text(loc.ok),
             ),
           ],
         );
@@ -487,19 +495,19 @@ class ScanDetailScreen extends StatelessWidget {
   }
 
   void _showCloudSuccessDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Success'),
-          content: const Text(
-              'Your scan report has been saved to your secure cloud storage. You can access it from any device.'),
+          title: Text(loc.success),
+          content: Text(loc.scanReportSavedDevice),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('OK'),
+              child: Text(loc.ok),
             ),
           ],
         );
@@ -508,19 +516,19 @@ class ScanDetailScreen extends StatelessWidget {
   }
 
   void _showCloudErrorDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Upload Failed'),
-          content: const Text(
-              'Failed to save report to cloud storage. Please check your internet connection and try again.'),
+          title: Text(loc.uploadFailed),
+          content: Text(loc.failedToSaveCloud),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('OK'),
+              child: Text(loc.ok),
             ),
           ],
         );

@@ -4,6 +4,7 @@ import 'tips_screen.dart';
 import 'clinics_screen.dart';
 import 'learn_screen.dart';
 import 'general_scan_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ScanWorkflowScreen extends StatefulWidget {
   static const routeName = '/scan-workflow';
@@ -69,18 +70,18 @@ class _ScanWorkflowScreenState extends State<ScanWorkflowScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 18),
-                  const Text(
-                    'Scan Your Teeth',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.scanYourTeeth,
+                    style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w700,
                       color: blackText,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Choose the type of scan you’d like to perform. Hold your phone steady while scanning.',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.chooseScanType,
+                    style: const TextStyle(
                       fontSize: 16,
                       color: subtitleText,
                       height: 1.5,
@@ -88,9 +89,8 @@ class _ScanWorkflowScreenState extends State<ScanWorkflowScreen> {
                   ),
                   const SizedBox(height: 18),
                   _ScanOptionTile(
-                    title: 'General Scan',
-                    description:
-                        'Scan your teeth for cavities, gum disease, and more',
+                    title: AppLocalizations.of(context)!.generalScan,
+                    description: AppLocalizations.of(context)!.generalScanDesc,
                     descriptionColor: descriptionGold,
                     onTap: () => Navigator.of(
                       context,
@@ -98,8 +98,8 @@ class _ScanWorkflowScreenState extends State<ScanWorkflowScreen> {
                   ),
                   const SizedBox(height: 16),
                   _ScanOptionTile(
-                    title: 'Braces Scan',
-                    description: 'Scan your teeth for braces related issues',
+                    title: AppLocalizations.of(context)!.bracesScan,
+                    description: AppLocalizations.of(context)!.bracesScanDesc,
                     descriptionColor: descriptionGold,
                     onTap: () {
                       // TODO: navigate to BracesScanScreen
@@ -137,26 +137,26 @@ class _ScanWorkflowScreenState extends State<ScanWorkflowScreen> {
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
         showUnselectedLabels: true,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_home.png')),
-            label: 'Home',
+            icon: const ImageIcon(AssetImage('assets/images/icon_home.png')),
+            label: AppLocalizations.of(context)!.home,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_tips.png')),
-            label: 'Tips',
+            icon: const ImageIcon(AssetImage('assets/images/icon_tips.png')),
+            label: AppLocalizations.of(context)!.tips,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_scan.png')),
-            label: 'Scan',
+            icon: const ImageIcon(AssetImage('assets/images/icon_scan.png')),
+            label: AppLocalizations.of(context)!.scan,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_clinics.png')),
-            label: 'Clinics',
+            icon: const ImageIcon(AssetImage('assets/images/icon_clinics.png')),
+            label: AppLocalizations.of(context)!.clinics,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_learn.png')),
-            label: 'Learn',
+            icon: const ImageIcon(AssetImage('assets/images/icon_learn.png')),
+            label: AppLocalizations.of(context)!.learn,
           ),
         ],
       ),

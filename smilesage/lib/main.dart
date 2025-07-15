@@ -20,6 +20,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:io';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
@@ -65,11 +67,38 @@ void main() async {
         );
   }
 
-  runApp(const DentalApp());
+  runApp(SmileSageRoot());
+}
+
+class SmileSageRoot extends StatefulWidget {
+  @override
+  State<SmileSageRoot> createState() => _SmileSageRootState();
+}
+
+class _SmileSageRootState extends State<SmileSageRoot> {
+  Locale _locale = const Locale('en');
+
+  void _setLocale(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DentalApp(
+      locale: _locale,
+      onLocaleChanged: _setLocale,
+    );
+  }
 }
 
 class DentalApp extends StatelessWidget {
-  const DentalApp({Key? key}) : super(key: key);
+  final Locale locale;
+  final void Function(Locale) onLocaleChanged;
+  const DentalApp(
+      {Key? key, required this.locale, required this.onLocaleChanged})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +109,17 @@ class DentalApp extends StatelessWidget {
         textTheme: GoogleFonts.lexendTextTheme(Theme.of(context).textTheme),
         scaffoldBackgroundColor: Colors.white,
       ),
+      locale: locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('fr'),
+      ],
       initialRoute: StartScreen.routeName,
       navigatorObservers: [routeObserver],
       routes: {
@@ -88,7 +128,10 @@ class DentalApp extends StatelessWidget {
         SignUpScreen.routeName: (_) => const SignUpScreen(),
         LoginScreen.routeName: (_) => const LoginScreen(),
         PermissionsScreen.routeName: (_) => const PermissionsScreen(),
-        HomeScreen.routeName: (_) => const HomeScreen(),
+        HomeScreen.routeName: (_) => HomeScreen(
+              onLocaleChanged: onLocaleChanged,
+              currentLocale: locale,
+            ),
         ScanWorkflowScreen.routeName: (_) => const ScanWorkflowScreen(),
         GeneralScanScreen.routeName: (_) => const GeneralScanScreen(),
         ChatScreen.routeName: (_) => const ChatScreen(),

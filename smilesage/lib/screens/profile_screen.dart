@@ -14,6 +14,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../services/local_data_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const routeName = '/profile';
@@ -316,9 +317,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const BackButton(color: Colors.black),
-        title: const Text(
-          'Profile',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          AppLocalizations.of(context)!.profile,
+          style:
+              const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -354,11 +356,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
 
                   // Account heading
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Account',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.account,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: headingText,
@@ -368,11 +370,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 16),
 
                   // Name field
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Name',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.fullName,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: headingText,
@@ -411,11 +413,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 16),
 
                   // Age field
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Age',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.age,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: headingText,
@@ -431,14 +433,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 controller: _ageController,
                                 keyboardType: TextInputType.number,
                                 autofocus: true,
-                                decoration: const InputDecoration(
-                                  hintText: 'Optional',
+                                decoration: InputDecoration(
+                                  hintText:
+                                      AppLocalizations.of(context)!.optional,
                                 ),
                                 onSubmitted: (_) => _saveAge(),
                               )
                             : Text(
                                 (_age == null || _age!.isEmpty)
-                                    ? 'Optional'
+                                    ? AppLocalizations.of(context)!.optional
                                     : _age!,
                                 style: const TextStyle(
                                     fontSize: 16, color: subtitleText),
@@ -463,9 +466,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'I wear braces',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)!.iWearBraces,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                           color: headingText,
@@ -482,11 +485,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 32),
 
                   // Notifications heading
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Notifications',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.notificationPreferences,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: headingText,
@@ -499,10 +502,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Daily tips',
-                          style: TextStyle(
+                          AppLocalizations.of(context)!.dailyTips,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                             color: headingText,
@@ -527,9 +530,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: const Text(
-                                'Brushing reminders',
-                                style: TextStyle(
+                              child: Text(
+                                AppLocalizations.of(context)!.brushingReminders,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                   color: headingText,
@@ -544,9 +547,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          'Every day',
-                          style: TextStyle(fontSize: 14, color: subtitleText),
+                        Text(
+                          AppLocalizations.of(context)!.everyDay,
+                          style: const TextStyle(
+                              fontSize: 14, color: subtitleText),
                         ),
                       ],
                     ),
@@ -555,11 +559,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 32),
 
                   // Actions heading
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Actions',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.actions,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: headingText,
@@ -586,9 +590,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Text(
-                            'View Scan History',
-                            style: TextStyle(
+                          child: Text(
+                            AppLocalizations.of(context)!.viewScanHistory,
+                            style: const TextStyle(
                               fontSize: 16,
                               color: headingText,
                               fontWeight: FontWeight.w600,
@@ -612,9 +616,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Text(
-                            'Manage Reminders',
-                            style: TextStyle(
+                          child: Text(
+                            AppLocalizations.of(context)!.manageReminders,
+                            style: const TextStyle(
                               fontSize: 16,
                               color: headingText,
                               fontWeight: FontWeight.w600,
@@ -638,9 +642,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: const Text(
-                            'Logout',
-                            style: TextStyle(
+                          child: Text(
+                            AppLocalizations.of(context)!.logout,
+                            style: const TextStyle(
                               fontSize: 16,
                               color: headingText,
                               fontWeight: FontWeight.w600,
@@ -665,26 +669,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
         showUnselectedLabels: true,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_home.png')),
-            label: 'Home',
+            icon: const ImageIcon(AssetImage('assets/images/icon_home.png')),
+            label: AppLocalizations.of(context)!.home,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_tips.png')),
-            label: 'Tips',
+            icon: const ImageIcon(AssetImage('assets/images/icon_tips.png')),
+            label: AppLocalizations.of(context)!.tips,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_scan.png')),
-            label: 'Scan',
+            icon: const ImageIcon(AssetImage('assets/images/icon_scan.png')),
+            label: AppLocalizations.of(context)!.scan,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_clinics.png')),
-            label: 'Clinics',
+            icon: const ImageIcon(AssetImage('assets/images/icon_clinics.png')),
+            label: AppLocalizations.of(context)!.clinics,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_learn.png')),
-            label: 'Learn',
+            icon: const ImageIcon(AssetImage('assets/images/icon_learn.png')),
+            label: AppLocalizations.of(context)!.learn,
           ),
         ],
       ),

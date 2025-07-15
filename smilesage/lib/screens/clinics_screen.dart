@@ -7,6 +7,7 @@ import '../models/clinic.dart';
 import '../services/clinic_service.dart';
 import '../services/location_service.dart';
 import 'clinic_detail_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ClinicsScreen extends StatefulWidget {
   static const routeName = '/clinics';
@@ -97,9 +98,10 @@ class _ClinicsScreenState extends State<ClinicsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const BackButton(color: Colors.black),
-        title: const Text(
-          'Find a Clinic',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          AppLocalizations.of(context)!.findAClinic,
+          style:
+              const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
       ),
       body: Stack(
@@ -130,7 +132,7 @@ class _ClinicsScreenState extends State<ClinicsScreen> {
                 },
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search),
-                  hintText: 'Search for a clinic',
+                  hintText: AppLocalizations.of(context)!.searchForAClinic,
                   filled: true,
                   fillColor: searchBg,
                   contentPadding: const EdgeInsets.symmetric(vertical: 0),
@@ -193,7 +195,7 @@ class _ClinicsScreenState extends State<ClinicsScreen> {
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Nearby Clinics',
+                        AppLocalizations.of(context)!.nearbyClinics,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -216,23 +218,28 @@ class _ClinicsScreenState extends State<ClinicsScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      _errorMessage!,
+                                      _errorMessage ??
+                                          AppLocalizations.of(context)!
+                                              .failedToLoadClinics,
                                       style: const TextStyle(color: Colors.red),
                                       textAlign: TextAlign.center,
                                     ),
                                     const SizedBox(height: 16),
                                     ElevatedButton(
                                       onPressed: _loadNearbyClinics,
-                                      child: const Text('Retry'),
+                                      child: Text(
+                                          AppLocalizations.of(context)!.retry),
                                     ),
                                   ],
                                 ),
                               )
                             : _filteredClinics.isEmpty
-                                ? const Center(
+                                ? Center(
                                     child: Text(
-                                      'No clinics found nearby',
-                                      style: TextStyle(color: Colors.grey),
+                                      AppLocalizations.of(context)!
+                                          .noClinicsNearby,
+                                      style:
+                                          const TextStyle(color: Colors.grey),
                                     ),
                                   )
                                 : ListView.separated(
@@ -278,26 +285,26 @@ class _ClinicsScreenState extends State<ClinicsScreen> {
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
         showUnselectedLabels: true,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_home.png')),
-            label: 'Home',
+            icon: const ImageIcon(AssetImage('assets/images/icon_home.png')),
+            label: AppLocalizations.of(context)!.home,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_tips.png')),
-            label: 'Tips',
+            icon: const ImageIcon(AssetImage('assets/images/icon_tips.png')),
+            label: AppLocalizations.of(context)!.tips,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_scan.png')),
-            label: 'Scan',
+            icon: const ImageIcon(AssetImage('assets/images/icon_scan.png')),
+            label: AppLocalizations.of(context)!.scan,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_clinics.png')),
-            label: 'Clinics',
+            icon: const ImageIcon(AssetImage('assets/images/icon_clinics.png')),
+            label: AppLocalizations.of(context)!.clinics,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_learn.png')),
-            label: 'Learn',
+            icon: const ImageIcon(AssetImage('assets/images/icon_learn.png')),
+            label: AppLocalizations.of(context)!.learn,
           ),
         ],
       ),
@@ -366,9 +373,9 @@ class _ClinicTile extends StatelessWidget {
                       vertical: 8,
                     ),
                   ),
-                  child: const Text(
-                    'Navigate',
-                    style: TextStyle(
+                  child: Text(
+                    AppLocalizations.of(context)!.navigate,
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF0A244E),

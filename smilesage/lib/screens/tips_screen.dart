@@ -12,6 +12,7 @@ import 'dart:io';
 import 'package:flutter/animation.dart';
 import '../main.dart'; // for routeObserver
 import '../services/profile_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class TipsScreen extends StatefulWidget {
   static const routeName = '/tips';
@@ -454,9 +455,9 @@ class _TipsScreenState extends State<TipsScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Brushing Streak',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context)!.brushingStreak,
+          style: const TextStyle(
               fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         const SizedBox(height: 12),
@@ -479,7 +480,8 @@ class _TipsScreenState extends State<TipsScreen>
             ),
             const SizedBox(width: 16),
             Text(
-              'Streak: $_currentStreak',
+              // Localize 'Streak: {n}'
+              '${AppLocalizations.of(context)!.nDayStreak(_currentStreak)}',
               style: const TextStyle(fontSize: 16, color: Colors.black54),
             ),
           ],
@@ -493,7 +495,7 @@ class _TipsScreenState extends State<TipsScreen>
         ),
         const SizedBox(height: 4),
         Text(
-          'Keep brushing daily to unlock the next badge!',
+          AppLocalizations.of(context)!.keepBrushingToUnlockBadge,
           style: const TextStyle(fontSize: 14, color: Color(0xFF6B7D82)),
         ),
         const SizedBox(height: 16),
@@ -502,8 +504,10 @@ class _TipsScreenState extends State<TipsScreen>
             children: [
               const Icon(Icons.check_circle, color: Colors.green),
               const SizedBox(width: 8),
-              const Text('You have marked today as brushed!',
-                  style: TextStyle(color: Colors.green)),
+              Text(
+                AppLocalizations.of(context)!.markedTodayBrushed,
+                style: const TextStyle(color: Colors.green),
+              ),
             ],
           )
         else
@@ -517,7 +521,7 @@ class _TipsScreenState extends State<TipsScreen>
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Mark as Brushed'),
+                    : Text(AppLocalizations.of(context)!.markAsBrushed),
               ),
             ],
           ),
@@ -526,7 +530,7 @@ class _TipsScreenState extends State<TipsScreen>
           OutlinedButton.icon(
             onPressed: clearBrushingLogs,
             icon: const Icon(Icons.refresh),
-            label: const Text('Reset Streak'),
+            label: Text(AppLocalizations.of(context)!.resetStreak),
           ),
       ],
     );
@@ -566,9 +570,10 @@ class _TipsScreenState extends State<TipsScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const BackButton(color: Colors.black),
-        title: const Text(
-          'Daily Dental Tips',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          AppLocalizations.of(context)!.dailyDentalTips,
+          style:
+              const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -594,26 +599,27 @@ class _TipsScreenState extends State<TipsScreen>
                       const Icon(Icons.notifications_active,
                           color: Colors.orange),
                       const SizedBox(width: 12),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Enable Daily Tip Reminders to get motivational dental care tips as notifications!',
-                          style: TextStyle(fontSize: 14, color: Colors.black87),
+                          AppLocalizations.of(context)!.enableDailyTipReminders,
+                          style: const TextStyle(
+                              fontSize: 14, color: Colors.black87),
                         ),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).pushNamed('/reminders');
                         },
-                        child: const Text('Enable'),
+                        child: Text(AppLocalizations.of(context)!.enable),
                       ),
                     ],
                   ),
                 ),
               ),
             // Intro text
-            const Text(
-              'Here are your personalized tips for today.\nKeep up the great work!',
-              style: TextStyle(fontSize: 16, color: bodyText),
+            Text(
+              AppLocalizations.of(context)!.personalizedTips,
+              style: const TextStyle(fontSize: 16, color: bodyText),
             ),
             const SizedBox(height: 24),
             if (_isLoadingTips)
@@ -678,9 +684,9 @@ class _TipsScreenState extends State<TipsScreen>
             const SizedBox(height: 24),
 
             // Rewards
-            const Text(
-              'Rewards',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.rewards,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: headingText,
@@ -707,7 +713,8 @@ class _TipsScreenState extends State<TipsScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Badge Unlocked: ${_currentBadge['label']}',
+                        AppLocalizations.of(context)!
+                            .badgeUnlocked(_currentBadge['label']),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -716,7 +723,8 @@ class _TipsScreenState extends State<TipsScreen>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'You unlocked the "${_currentBadge['label']}" badge for your brushing streak! Keep going to reach the next milestone.',
+                        AppLocalizations.of(context)!
+                            .badgeUnlockedDesc(_currentBadge['label']),
                         style:
                             const TextStyle(fontSize: 14, color: subtitleText),
                       ),
@@ -740,26 +748,26 @@ class _TipsScreenState extends State<TipsScreen>
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
         showUnselectedLabels: true,
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_home.png')),
-            label: 'Home',
+            icon: const ImageIcon(AssetImage('assets/images/icon_home.png')),
+            label: AppLocalizations.of(context)!.home,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_tips.png')),
-            label: 'Tips',
+            icon: const ImageIcon(AssetImage('assets/images/icon_tips.png')),
+            label: AppLocalizations.of(context)!.tips,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_scan.png')),
-            label: 'Scan',
+            icon: const ImageIcon(AssetImage('assets/images/icon_scan.png')),
+            label: AppLocalizations.of(context)!.scan,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_clinics.png')),
-            label: 'Clinics',
+            icon: const ImageIcon(AssetImage('assets/images/icon_clinics.png')),
+            label: AppLocalizations.of(context)!.clinics,
           ),
           BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('assets/images/icon_learn.png')),
-            label: 'Learn',
+            icon: const ImageIcon(AssetImage('assets/images/icon_learn.png')),
+            label: AppLocalizations.of(context)!.learn,
           ),
         ],
       ),

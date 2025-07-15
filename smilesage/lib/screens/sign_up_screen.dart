@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import 'permissions_screen.dart';
 import 'home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const routeName = '/sign-up';
@@ -36,9 +37,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text(
-            'Terms and Conditions',
-            style: TextStyle(
+          title: Text(
+            AppLocalizations.of(context)!.termsTitle,
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18,
             ),
@@ -47,45 +48,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              children: const [
+              children: [
                 Text(
-                  'Welcome to SmileSage! By using our app, you agree to the following terms:',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  AppLocalizations.of(context)!.termsWelcome,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 14),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
-                  '1. **App Purpose**: SmileSage is a dental health companion app that provides educational content, scanning capabilities, and dental care tips. It is not a substitute for professional dental care.',
-                  style: TextStyle(fontSize: 13, height: 1.4),
+                  '1. ${AppLocalizations.of(context)!.termsPurpose}: ${AppLocalizations.of(context)!.termsPurposeDesc}',
+                  style: const TextStyle(fontSize: 13, height: 1.4),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
-                  '2. **Medical Disclaimer**: The scanning feature and AI-powered analysis are for educational purposes only. Always consult with a qualified dental professional for diagnosis and treatment.',
-                  style: TextStyle(fontSize: 13, height: 1.4),
+                  '2. ${AppLocalizations.of(context)!.termsDisclaimer}: ${AppLocalizations.of(context)!.termsDisclaimerDesc}',
+                  style: const TextStyle(fontSize: 13, height: 1.4),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
-                  '3. **Privacy & Data**: We collect and process your personal information, including dental images, to provide our services. Your data is stored securely and used only for app functionality.',
-                  style: TextStyle(fontSize: 13, height: 1.4),
+                  '3. ${AppLocalizations.of(context)!.termsPrivacy}: ${AppLocalizations.of(context)!.termsPrivacyDesc}',
+                  style: const TextStyle(fontSize: 13, height: 1.4),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
-                  '4. **User Responsibilities**: You are responsible for maintaining the accuracy of your information and using the app appropriately. Do not rely solely on app recommendations for medical decisions.',
-                  style: TextStyle(fontSize: 13, height: 1.4),
+                  '4. ${AppLocalizations.of(context)!.termsResponsibilities}: ${AppLocalizations.of(context)!.termsResponsibilitiesDesc}',
+                  style: const TextStyle(fontSize: 13, height: 1.4),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
-                  '5. **Limitation of Liability**: SmileSage is not liable for any damages arising from the use of our app or reliance on its content.',
-                  style: TextStyle(fontSize: 13, height: 1.4),
+                  '5. ${AppLocalizations.of(context)!.termsLiability}: ${AppLocalizations.of(context)!.termsLiabilityDesc}',
+                  style: const TextStyle(fontSize: 13, height: 1.4),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
-                  '6. **Updates**: We may update these terms periodically. Continued use of the app constitutes acceptance of updated terms.',
-                  style: TextStyle(fontSize: 13, height: 1.4),
+                  '6. ${AppLocalizations.of(context)!.termsUpdates}: ${AppLocalizations.of(context)!.termsUpdatesDesc}',
+                  style: const TextStyle(fontSize: 13, height: 1.4),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
-                  '7. **Contact**: For questions about these terms, contact us through the app settings.',
-                  style: TextStyle(fontSize: 13, height: 1.4),
+                  '7. ${AppLocalizations.of(context)!.termsContact}: ${AppLocalizations.of(context)!.termsContactDesc}',
+                  style: const TextStyle(fontSize: 13, height: 1.4),
                 ),
               ],
             ),
@@ -98,9 +100,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   _termsViewed = true; // Enable checkbox after viewing terms
                 });
               },
-              child: const Text(
-                'I Understand',
-                style: TextStyle(
+              child: Text(
+                AppLocalizations.of(context)!.iUnderstand,
+                style: const TextStyle(
                   color: Color(0xFF7CF4A4),
                   fontWeight: FontWeight.w600,
                 ),
@@ -127,30 +129,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final password = _passwordCtrl.text.trim();
     bool hasError = false;
     if (name.isEmpty) {
-      setState(() => _nameError = 'Full name is required');
+      setState(
+          () => _nameError = AppLocalizations.of(context)!.fullNameRequired);
       hasError = true;
     }
     if (email.isEmpty) {
-      setState(() => _emailError = 'Email is required');
+      setState(() => _emailError = AppLocalizations.of(context)!.emailRequired);
       hasError = true;
     } else if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+').hasMatch(email)) {
-      setState(() => _emailError = 'Enter a valid email address');
+      setState(
+          () => _emailError = AppLocalizations.of(context)!.enterValidEmail);
       hasError = true;
     }
     if (password.isEmpty) {
-      setState(() => _passwordError = 'Password is required');
+      setState(() =>
+          _passwordError = AppLocalizations.of(context)!.passwordRequired);
       hasError = true;
     } else if (password.length < 6) {
-      setState(() => _passwordError = 'Password must be at least 6 characters');
+      setState(() =>
+          _passwordError = AppLocalizations.of(context)!.passwordMinLength);
       hasError = true;
     }
     if (!_termsViewed) {
-      _showError(context, 'Please view the terms and conditions first.');
+      _showError(context, AppLocalizations.of(context)!.pleaseViewTerms);
       setState(() => _loading = false);
       return;
     }
     if (!_agree) {
-      _showError(context, 'You must agree to the terms and conditions.');
+      _showError(context, AppLocalizations.of(context)!.mustAgreeTerms);
       setState(() => _loading = false);
       return;
     }
@@ -166,17 +172,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
       }
     } on FirebaseAuthException catch (e) {
-      String message = 'Sign up failed';
+      String message = AppLocalizations.of(context)!.signUpFailed;
       if (e.code == 'email-already-in-use') {
-        message = 'This email is already in use.';
+        message = AppLocalizations.of(context)!.emailInUse;
       } else if (e.code == 'invalid-email') {
-        message = 'Invalid email address.';
+        message = AppLocalizations.of(context)!.invalidEmail;
       } else if (e.code == 'weak-password') {
-        message = 'Password is too weak.';
+        message = AppLocalizations.of(context)!.passwordTooWeak;
       }
       _showError(context, message);
     } catch (e) {
-      _showError(context, 'An unexpected error occurred.');
+      _showError(context, AppLocalizations.of(context)!.unexpectedError);
     } finally {
       setState(() => _loading = false);
     }
@@ -222,9 +228,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
-          'Get Started',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.getStarted,
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -245,7 +251,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     TextField(
                       controller: _nameCtrl,
                       decoration: InputDecoration(
-                        hintText: 'Full Name',
+                        hintText: AppLocalizations.of(context)!.fullName,
                         hintStyle: const TextStyle(fontSize: 14),
                         filled: true,
                         fillColor: inputFill,
@@ -262,7 +268,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       controller: _emailCtrl,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        hintText: 'Email Address',
+                        hintText: AppLocalizations.of(context)!.email,
                         hintStyle: const TextStyle(fontSize: 14),
                         filled: true,
                         fillColor: inputFill,
@@ -280,7 +286,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       controller: _passwordCtrl,
                       obscureText: _obscure,
                       decoration: InputDecoration(
-                        hintText: 'Password',
+                        hintText: AppLocalizations.of(context)!.password,
                         hintStyle: const TextStyle(fontSize: 14),
                         filled: true,
                         fillColor: inputFill,
@@ -318,19 +324,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               text: TextSpan(
                                 children: [
                                   TextSpan(
-                                    text: 'I agree with the ',
-                                    style: TextStyle(
+                                    text: AppLocalizations.of(context)!
+                                        .iAgreeTerms,
+                                    style: const TextStyle(
                                       fontSize: 14,
                                       color: Colors.black87,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'terms and conditions',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: linkText,
-                                      decoration: TextDecoration.underline,
-                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                   if (!_termsViewed)
@@ -371,9 +369,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Text(
-                                'Sign Up',
-                                style: TextStyle(
+                            : Text(
+                                AppLocalizations.of(context)!.signUp,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                   color: navyText,
@@ -383,7 +381,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
 
                     const SizedBox(height: 16),
-                    const Text('or'),
+                    Text(AppLocalizations.of(context)!.orSignInWith),
                     const SizedBox(height: 16),
 
                     // Google sign-up
@@ -397,9 +395,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           width: 24,
                           height: 24,
                         ),
-                        label: const Text(
-                          'Sign up with Google',
-                          style: TextStyle(
+                        label: Text(
+                          AppLocalizations.of(context)!.signUp,
+                          style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             color: navyText,
                           ),
@@ -420,7 +418,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         context,
                       ).pushReplacementNamed(LoginScreen.routeName),
                       child: Text(
-                        'Already have an account? Log in',
+                        AppLocalizations.of(context)!.alreadyHaveAccount +
+                            ' ' +
+                            AppLocalizations.of(context)!.login,
                         style: TextStyle(color: linkText),
                       ),
                     ),

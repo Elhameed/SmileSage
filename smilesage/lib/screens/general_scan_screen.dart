@@ -11,6 +11,7 @@ import 'scan_workflow_screen.dart';
 import '../models/scan_result.dart';
 import 'dart:async';
 import 'chat_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class GeneralScanScreen extends StatefulWidget {
   static const routeName = '/general-scan';
@@ -64,7 +65,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
         });
       }
     } catch (e) {
-      _showSnackBar('Error selecting image: ${e.toString()}');
+      _showSnackBar(
+          AppLocalizations.of(context)!.errorSelectingImage(e.toString()));
     }
   }
 
@@ -90,7 +92,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
         });
       }
     } catch (e) {
-      _showSnackBar('Error capturing image: ${e.toString()}');
+      _showSnackBar(
+          AppLocalizations.of(context)!.errorCapturingImage(e.toString()));
     }
   }
 
@@ -112,7 +115,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
       }
       return Uint8List.fromList(img.encodeJpg(rgbImage));
     } catch (e) {
-      throw Exception('Image processing failed');
+      throw Exception(AppLocalizations.of(context)!.imageProcessingFailed);
     }
   }
 
@@ -159,12 +162,14 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
           _explanation = jsonResponse['response'];
         });
       } else {
-        _showSnackBar('Failed to get explanation: ${response.statusCode}');
+        _showSnackBar(AppLocalizations.of(context)!
+            .failedToGetExplanation(response.statusCode.toString()));
       }
     } on TimeoutException {
-      _showSnackBar('Explanation request timed out');
+      _showSnackBar(AppLocalizations.of(context)!.explanationRequestTimedOut);
     } catch (e) {
-      _showSnackBar('Error getting explanation: ${e.toString()}');
+      _showSnackBar(
+          AppLocalizations.of(context)!.errorGettingExplanation(e.toString()));
     } finally {
       setState(() {
         _isFetchingExplanation = false;
@@ -177,7 +182,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
     final historyList = prefs.getStringList('scan_history') ?? [];
     historyList.add(jsonEncode(result.toJson()));
     await prefs.setStringList('scan_history', historyList);
-    _showSnackBar('Result saved to history');
+    _showSnackBar(AppLocalizations.of(context)!.resultSavedToHistory);
   }
 
   void _handleSaveButton() {
@@ -193,13 +198,13 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
       );
       _saveToHistory(resultWithExplanation);
     } else {
-      _showSnackBar('No result to save');
+      _showSnackBar(AppLocalizations.of(context)!.noResultToSave);
     }
   }
 
   Future<void> _runInference() async {
     if (_selectedImage == null) {
-      _showSnackBar('Please select an image first');
+      _showSnackBar(AppLocalizations.of(context)!.pleaseSelectImageFirst);
       return;
     }
 
@@ -248,15 +253,17 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
         _fetchConditionExplanation(_predictedCondition!);
       } else {
         final errorBody = await response.stream.bytesToString();
-        _showSnackBar(
-            'API Error: ${response.statusCode} - ${response.reasonPhrase}\n$errorBody');
+        _showSnackBar(AppLocalizations.of(context)!.apiError(
+            response.statusCode.toString(),
+            response.reasonPhrase ?? '',
+            errorBody));
       }
     } on http.ClientException catch (e) {
-      _showSnackBar('Network error: ${e.message}');
+      _showSnackBar(AppLocalizations.of(context)!.networkError(e.message));
     } on TimeoutException {
-      _showSnackBar('Request timed out. Please try again');
+      _showSnackBar(AppLocalizations.of(context)!.requestTimedOut);
     } catch (e) {
-      _showSnackBar('Error: ${e.toString()}');
+      _showSnackBar(AppLocalizations.of(context)!.genericError(e.toString()));
     } finally {
       setState(() {
         _isProcessing = false;
@@ -334,9 +341,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
           onPressed: () => Navigator.of(context)
               .pushReplacementNamed(ScanWorkflowScreen.routeName),
         ),
-        title: const Text(
-          'Scan',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.scan,
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: navyText,
@@ -352,9 +359,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
             const SizedBox(height: 16),
 
             // 1) "Select Scan Type" label
-            const Text(
-              'Select Scan Type',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.selectScanType,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: navyText,
@@ -384,7 +391,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                         ),
                       ),
                       child: Text(
-                        'General Scan',
+                        AppLocalizations.of(context)!.generalScan,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -416,7 +423,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                         ),
                       ),
                       child: Text(
-                        'Braces Scan',
+                        AppLocalizations.of(context)!.bracesScan,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -432,9 +439,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
             const SizedBox(height: 32),
 
             // 3) "Select Image" section label
-            const Text(
-              'Select Image',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.selectImage,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: navyText,
@@ -475,7 +482,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                             ElevatedButton.icon(
                               onPressed: _pickImageFromCamera,
                               icon: const Icon(Icons.camera_alt),
-                              label: const Text('Take Photo'),
+                              label:
+                                  Text(AppLocalizations.of(context)!.takePhoto),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: primaryGreen,
                                 foregroundColor: Colors.white,
@@ -488,7 +496,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                             OutlinedButton.icon(
                               onPressed: _pickImageFromGallery,
                               icon: const Icon(Icons.photo_library),
-                              label: const Text('Gallery'),
+                              label:
+                                  Text(AppLocalizations.of(context)!.gallery),
                               style: OutlinedButton.styleFrom(
                                 side: const BorderSide(
                                     color: primaryGreen, width: 1.2),
@@ -506,7 +515,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
             const SizedBox(height: 8),
             Center(
               child: Text(
-                _selectedImage != null ? 'Image selected' : 'No image selected',
+                _selectedImage != null
+                    ? AppLocalizations.of(context)!.imageSelected
+                    : AppLocalizations.of(context)!.noImageSelected,
                 style: const TextStyle(fontSize: 14, color: subtitleText),
               ),
             ),
@@ -539,9 +550,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                             ),
                           ),
                         )
-                      : const Text(
-                          'Analyze',
-                          style: TextStyle(
+                      : Text(
+                          AppLocalizations.of(context)!.analyze,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -555,9 +566,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
 
             // 6) "Detected Conditions" section
             if (_hasResult && _predictedCondition != null) ...[
-              const Text(
-                'Detection Results',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.detectionResults,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: navyText,
@@ -578,7 +589,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Predicted Condition:',
+                      AppLocalizations.of(context)!.predictedCondition,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -596,7 +607,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Confidence: ${(_confidence! * 100).toStringAsFixed(1)}%',
+                      AppLocalizations.of(context)!
+                          .confidence((_confidence! * 100).toStringAsFixed(1)),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -608,7 +620,7 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                     // Explanation section
                     if (_explanation != null) ...[
                       Text(
-                        'Explanation:',
+                        AppLocalizations.of(context)!.explanation,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -633,9 +645,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
 
                     // All predictions visualization
                     if (_allPredictions != null) ...[
-                      const Text(
-                        'All Predictions:',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)!.allPredictions,
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: subtitleText,
@@ -659,10 +671,11 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                               width: double.infinity,
                               color: Colors.grey.shade200,
                               alignment: Alignment.center,
-                              child: const Text(
-                                'Grad-CAM Heatmap unavailable',
-                                style:
-                                    TextStyle(fontSize: 14, color: Colors.grey),
+                              child: Text(
+                                AppLocalizations.of(context)!
+                                    .gradcamUnavailable,
+                                style: const TextStyle(
+                                    fontSize: 14, color: Colors.grey),
                               ),
                             ),
                     ),
@@ -693,9 +706,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      child: const Text(
-                        'Ask a Question',
-                        style: TextStyle(
+                      child: Text(
+                        AppLocalizations.of(context)!.askAQuestion,
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: primaryGreen,
@@ -718,9 +731,9 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         elevation: 2,
                       ),
-                      child: const Text(
-                        'Save to History',
-                        style: TextStyle(
+                      child: Text(
+                        AppLocalizations.of(context)!.saveToHistory,
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
