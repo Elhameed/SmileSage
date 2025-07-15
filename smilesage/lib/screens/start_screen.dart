@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'welcome_screen.dart';
+import '../services/auth_service.dart';
+import 'home_screen.dart';
 
 class StartScreen extends StatefulWidget {
   static const routeName = '/';
@@ -14,10 +16,19 @@ class _StartScreenState extends State<StartScreen> {
   @override
   void initState() {
     super.initState();
-    // After 5 seconds, go to WelcomeScreen
-    Timer(const Duration(seconds: 5), () {
+    _navigateAfterSplash();
+  }
+
+  Future<void> _navigateAfterSplash() async {
+    await Future.delayed(const Duration(seconds: 3)); // splash duration
+    final user = AuthService().currentUser;
+    if (user != null) {
+      // User is logged in, go to Home
+      Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
+    } else {
+      // Not logged in, go to Welcome
       Navigator.of(context).pushReplacementNamed(WelcomeScreen.routeName);
-    });
+    }
   }
 
   @override
