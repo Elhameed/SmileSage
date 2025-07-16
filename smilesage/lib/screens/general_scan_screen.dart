@@ -12,6 +12,7 @@ import '../models/scan_result.dart';
 import 'dart:async';
 import 'chat_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../services/translation_service.dart';
 
 class GeneralScanScreen extends StatefulWidget {
   static const routeName = '/general-scan';
@@ -158,8 +159,14 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
+        String explanation = jsonResponse['response'];
+        // Translate if needed
+        if (Localizations.localeOf(context).languageCode == 'fr') {
+          explanation =
+              await TranslationService.translateText(explanation, 'fr');
+        }
         setState(() {
-          _explanation = jsonResponse['response'];
+          _explanation = explanation;
         });
       } else {
         _showSnackBar(AppLocalizations.of(context)!

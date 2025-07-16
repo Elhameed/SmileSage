@@ -13,6 +13,7 @@ import 'package:flutter/animation.dart';
 import '../main.dart'; // for routeObserver
 import '../services/profile_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../services/translation_service.dart';
 
 class TipsScreen extends StatefulWidget {
   static const routeName = '/tips';
@@ -199,10 +200,11 @@ class _TipsScreenState extends State<TipsScreen>
     final todayStr = '${today.year}-${today.month}-${today.day}';
     final cachedDate = prefs.getString(dailyTipsCacheDateKey);
     final cachedTipsString = prefs.getString(dailyTipsCacheKey);
+    List<Map<String, String>> tips = [];
+    bool loadedFromCache = false;
     if (cachedDate == todayStr && cachedTipsString != null) {
       try {
         final tipsJson = json.decode(cachedTipsString);
-        List<Map<String, String>> tips = [];
         if (tipsJson is List) {
           for (var tip in tipsJson) {
             if (tip is Map && tip.containsKey('title')) {
@@ -215,93 +217,89 @@ class _TipsScreenState extends State<TipsScreen>
             }
           }
         }
-        if (tips.isNotEmpty) {
-          setState(() {
-            _tips = tips;
-            _isLoadingTips = false;
-          });
-          return;
+        loadedFromCache = tips.isNotEmpty;
+      } catch (e) {
+        // Ignore and use fallback
+      }
+    }
+    // If not loaded from cache, try Gemini API
+    if (!loadedFromCache) {
+      try {
+        final requestBody = {
+          'system_prompt':
+              'You are a dental health assistant. Respond with clear, evidence-based answers about oral hygiene, dental diseases, and oral care. If the question is outside this domain, politely explain that you\'re limited to dental topics.',
+          'messages': [
+            {
+              'role': 'user',
+              'content':
+                  'Give me 3 concise, motivational daily dental care tips for braces in JSON array format, each with a title and a sentence description.'
+            }
+          ]
+        };
+        final response = await http.post(
+          Uri.parse(geminiTipsUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode(requestBody),
+        );
+        if (response.statusCode == 200) {
+          final decoded = json.decode(response.body);
+          if (decoded is Map && decoded.containsKey('response')) {
+            String tipsString = decoded['response'];
+            tipsString = tipsString.trim();
+            if (tipsString.startsWith('```')) {
+              final firstNewline = tipsString.indexOf('\n');
+              if (firstNewline != -1) {
+                tipsString = tipsString.substring(firstNewline + 1);
+              }
+              if (tipsString.endsWith('```')) {
+                tipsString = tipsString.substring(0, tipsString.length - 3);
+              }
+              tipsString = tipsString.trim();
+            }
+            try {
+              final tipsJson = json.decode(tipsString);
+              if (tipsJson is List) {
+                for (var tip in tipsJson) {
+                  if (tip is Map && tip.containsKey('title')) {
+                    final desc = tip['desc'] ?? tip['description'] ?? '';
+                    tips.add({
+                      'icon': 'assets/images/icon_braces_care.png',
+                      'title': tip['title'],
+                      'desc': desc,
+                    });
+                  }
+                }
+                // Cache the tips for today
+                await prefs.setString(dailyTipsCacheKey, json.encode(tipsJson));
+                await prefs.setString(dailyTipsCacheDateKey, todayStr);
+              }
+            } catch (e) {
+              // Ignore and fall through to fallback
+            }
+          }
         }
       } catch (e) {
-        // Ignore and fall through to fetch
+        // Ignore and fall through to fallback
       }
     }
-    // If not cached, fetch from API
-    try {
-      final requestBody = {
-        'system_prompt':
-            'You are a dental health assistant. Respond with clear, evidence-based answers about oral hygiene, dental diseases, and oral care. If the question is outside this domain, politely explain that you\'re limited to dental topics.',
-        'messages': [
-          {
-            'role': 'user',
-            'content':
-                'Give me 3 concise, motivational daily dental care tips for braces in JSON array format, each with a title and a sentence description.'
-          }
-        ]
-      };
-      final response = await http.post(
-        Uri.parse(geminiTipsUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(requestBody),
-      );
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-        if (decoded is Map && decoded.containsKey('response')) {
-          String tipsString = decoded['response'];
-          tipsString = tipsString.trim();
-          if (tipsString.startsWith('```')) {
-            final firstNewline = tipsString.indexOf('\n');
-            if (firstNewline != -1) {
-              tipsString = tipsString.substring(firstNewline + 1);
-            }
-            if (tipsString.endsWith('```')) {
-              tipsString = tipsString.substring(0, tipsString.length - 3);
-            }
-            tipsString = tipsString.trim();
-          }
-          try {
-            final tipsJson = json.decode(tipsString);
-            List<Map<String, String>> tips = [];
-            if (tipsJson is List) {
-              for (var tip in tipsJson) {
-                if (tip is Map && tip.containsKey('title')) {
-                  final desc = tip['desc'] ?? tip['description'] ?? '';
-                  tips.add({
-                    'icon': 'assets/images/icon_braces_care.png',
-                    'title': tip['title'],
-                    'desc': desc,
-                  });
-                }
-              }
-            }
-            if (tips.isNotEmpty) {
-              // Cache the tips for today
-              await prefs.setString(dailyTipsCacheKey, json.encode(tipsJson));
-              await prefs.setString(dailyTipsCacheDateKey, todayStr);
-              setState(() {
-                _tips = tips;
-                _isLoadingTips = false;
-              });
-              return;
-            }
-          } catch (e) {
-            // Ignore and fall through to fallback
-          }
-        }
-      }
-      // If failed to parse or empty, fallback
-      setState(() {
-        _tips = _staticTips;
-        _isLoadingTips = false;
-        _tipsError = 'Could not fetch new tips. Showing static tips.';
-      });
-    } catch (e) {
-      setState(() {
-        _tips = _staticTips;
-        _isLoadingTips = false;
-        _tipsError = 'Could not fetch new tips. Showing static tips.';
-      });
+    // Fallback to static tips if still empty
+    if (tips.isEmpty) {
+      tips = List<Map<String, String>>.from(_staticTips);
     }
+    // Translate all tips if needed
+    if (tips.isNotEmpty &&
+        Localizations.localeOf(context).languageCode == 'fr') {
+      for (var tip in tips) {
+        tip['title'] =
+            await TranslationService.translateText(tip['title'] ?? '', 'fr');
+        tip['desc'] =
+            await TranslationService.translateText(tip['desc'] ?? '', 'fr');
+      }
+    }
+    setState(() {
+      _tips = tips;
+      _isLoadingTips = false;
+    });
   }
 
   Future<void> _markBrushedToday() async {
@@ -618,7 +616,7 @@ class _TipsScreenState extends State<TipsScreen>
               ),
             // Intro text
             Text(
-              AppLocalizations.of(context)!.personalizedTips,
+              AppLocalizations.of(context)!.personalizedTipsScreen,
               style: const TextStyle(fontSize: 16, color: bodyText),
             ),
             const SizedBox(height: 24),

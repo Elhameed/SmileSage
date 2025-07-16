@@ -19,6 +19,7 @@ import 'package:flutter/widgets.dart';
 import 'scan_detail_screen.dart';
 import '../services/profile_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../services/translation_service.dart';
 
 // Add a global RouteObserver in main.dart and import it here
 import '../main.dart';
@@ -186,10 +187,24 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           for (var tip in tipsJson) {
             if (tip is Map && tip.containsKey('title')) {
               final desc = tip['desc'] ?? tip['description'] ?? '';
+              // Try to infer imageKey from English before translation
+              String imageKey = '';
+              final title = (tip['title'] ?? '').toLowerCase();
+              final descLower = desc.toLowerCase();
+              if (title.contains('floss') || descLower.contains('floss')) {
+                imageKey = 'floss';
+              } else if (title.contains('brush') ||
+                  descLower.contains('brush')) {
+                imageKey = 'brush';
+              } else if (title.contains('rinse') ||
+                  descLower.contains('rinse')) {
+                imageKey = 'rinse';
+              }
               tips.add({
                 'icon': 'assets/images/icon_braces_care.png',
                 'title': tip['title'],
                 'desc': desc,
+                'imageKey': imageKey,
               });
             }
           }
@@ -205,20 +220,34 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           'title': 'Braces Care: Gentle Brushing',
           'desc':
               'Brush gently around brackets and wires to remove plaque and food particles.',
+          'imageKey': 'brush',
         },
         {
           'icon': 'assets/images/icon_braces_care.png',
           'title': 'Braces Care: Flossing',
           'desc':
               'Use a floss threader or interdental brush to clean between teeth and under wires.',
+          'imageKey': 'floss',
         },
         {
           'icon': 'assets/images/icon_braces_care.png',
           'title': 'Braces Care: Mouthwash',
           'desc':
               'Rinse with fluoride mouthwash to strengthen enamel and prevent cavities.',
+          'imageKey': 'rinse',
         },
       ];
+    }
+    // Translate all tips if needed
+    if (tips.isNotEmpty &&
+        Localizations.localeOf(context).languageCode == 'fr') {
+      for (var tip in tips) {
+        tip['title'] =
+            await TranslationService.translateText(tip['title'] ?? '', 'fr');
+        tip['desc'] =
+            await TranslationService.translateText(tip['desc'] ?? '', 'fr');
+        // imageKey remains unchanged
+      }
     }
     setState(() {
       _dailyTips = tips;
@@ -296,18 +325,18 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     }
   }
 
-  // Helper to select tip image based on keywords
+  // Helper to select tip image based on imageKey
   String _getTipImage(Map<String, String> tip) {
-    final title = (tip['title'] ?? '').toLowerCase();
-    final desc = (tip['desc'] ?? '').toLowerCase();
-    if (title.contains('floss') || desc.contains('floss')) {
-      return 'assets/images/flossing.png';
-    } else if (title.contains('brush') || desc.contains('brush')) {
-      return 'assets/images/brushing.png';
-    } else if (title.contains('rinse') || desc.contains('rinse')) {
-      return 'assets/images/rinsing.png';
+    switch (tip['imageKey']) {
+      case 'floss':
+        return 'assets/images/flossing.png';
+      case 'brush':
+        return 'assets/images/brushing.png';
+      case 'rinse':
+        return 'assets/images/rinsing.png';
+      default:
+        return 'assets/images/icon_braces_care.png';
     }
-    return 'assets/images/icon_braces_care.png'; // fallback
   }
 
   @override

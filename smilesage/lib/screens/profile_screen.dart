@@ -373,7 +373,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      AppLocalizations.of(context)!.fullName,
+                      AppLocalizations.of(context)!.profileName,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -488,7 +488,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      AppLocalizations.of(context)!.notificationPreferences,
+                      AppLocalizations.of(context)!.profileNotifications,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

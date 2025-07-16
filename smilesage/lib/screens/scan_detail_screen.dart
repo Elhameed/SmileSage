@@ -9,6 +9,7 @@ import '../services/profile_service.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:open_file/open_file.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../services/translation_service.dart';
 
 class ScanDetailScreen extends StatelessWidget {
   static const routeName = '/scan-detail';
@@ -97,13 +98,48 @@ class ScanDetailScreen extends StatelessWidget {
             const SizedBox(height: 14),
             if (scanResult.explanation != null &&
                 scanResult.explanation!.isNotEmpty)
-              Text(
-                scanResult.explanation!,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: subtitleText,
-                  fontWeight: FontWeight.w400,
-                ),
+              Builder(
+                builder: (context) {
+                  final isFrench =
+                      Localizations.localeOf(context).languageCode == 'fr';
+                  if (!isFrench) {
+                    return Text(
+                      scanResult.explanation!,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: subtitleText,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    );
+                  }
+                  return FutureBuilder<String>(
+                    future: TranslationService.translateText(
+                        scanResult.explanation!, 'fr'),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      }
+                      if (snapshot.hasError || !snapshot.hasData) {
+                        return Text(
+                          scanResult.explanation!,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: subtitleText,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        );
+                      }
+                      return Text(
+                        snapshot.data!,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: subtitleText,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             const SizedBox(height: 24),
 
@@ -138,24 +174,30 @@ class ScanDetailScreen extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(AppLocalizations.of(context)!.original,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: primaryGreen,
-                          fontWeight: FontWeight.w400,
-                        )),
-                    Text(AppLocalizations.of(context)!.dentalScan,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(AppLocalizations.of(context)!.original,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: primaryGreen,
+                            fontWeight: FontWeight.w400,
+                          )),
+                      Text(
+                        AppLocalizations.of(context)!.dentalScan,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                           color: Colors.black,
-                        )),
-                  ],
+                        ),
+                        softWrap: true,
+                        overflow: TextOverflow.visible,
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 56),
+                const SizedBox(width: 12),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(14),
                   child: Image.memory(
@@ -172,24 +214,30 @@ class ScanDetailScreen extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(AppLocalizations.of(context)!.gradcam,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: primaryGreen,
-                          fontWeight: FontWeight.w400,
-                        )),
-                    Text(AppLocalizations.of(context)!.heatmapOverlay,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(AppLocalizations.of(context)!.gradcam,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: primaryGreen,
+                            fontWeight: FontWeight.w400,
+                          )),
+                      Text(
+                        AppLocalizations.of(context)!.heatmapOverlay,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                           color: Colors.black,
-                        )),
-                  ],
+                        ),
+                        softWrap: true,
+                        overflow: TextOverflow.visible,
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 56),
+                const SizedBox(width: 12),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(14),
                   child: Image.memory(
