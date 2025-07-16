@@ -60,7 +60,7 @@ class _LearnScreenState extends State<LearnScreen> {
         'subtitle':
             'Watch a step-by-step video on effective brushing methods to keep your teeth clean and strong.',
         'image': 'assets/images/learn2.png',
-        'url': 'https://www.youtube.com/watch?v=1w2Tu9r2U0M',
+        'url': 'https://www.youtube.com/watch?v=3oG_JLuQ8T8',
       },
       {
         'type': 'Article',
@@ -82,9 +82,9 @@ class _LearnScreenState extends State<LearnScreen> {
         'type': 'Resource',
         'title': 'ADA Oral Hygiene Recommendations',
         'subtitle': 'Official guidelines from the American Dental Association.',
-        'image': 'assets/images/icon_tips.png',
+        'image': 'assets/images/learn4.png',
         'url':
-            'https://www.ada.org/resources/research/science-and-research-institute/oral-health-topics/brushing-your-teeth',
+            'https://www.ada.org/resources/ada-library/oral-health-topics/home-care',
       },
     ];
 
@@ -94,30 +94,31 @@ class _LearnScreenState extends State<LearnScreen> {
         'title': 'Foods That Strengthen Your Teeth',
         'subtitle':
             'Explore foods rich in calcium and phosphorus for stronger enamel.',
-        'image': 'assets/images/learn1.png',
+        'image': 'assets/images/learn5.png',
         'url':
-            'https://www.colgate.com/en-us/oral-health/nutrition-and-oral-health/foods-for-healthy-teeth-0313',
+            'https://www.colgate.com/en-us/oral-health/nutrition-and-oral-health/healthy-foods-list-seven-best-foods-for-your-teeth',
       },
       {
         'type': 'Tip',
         'title': 'Limit Sugary Snacks',
         'subtitle': 'Reduce sugar intake to prevent cavities and tooth decay.',
-        'image': 'assets/images/learn2.png',
+        'image': 'assets/images/learn6.png',
       },
       {
         'type': 'Video',
         'title': 'How Diet Affects Oral Health',
         'subtitle':
             'A short video on the impact of nutrition on your teeth and gums.',
-        'image': 'assets/images/learn3.png',
-        'url': 'https://www.youtube.com/watch?v=Q2vQwF8pQhA',
+        'image': 'assets/images/learn7.png',
+        'url': 'https://www.youtube.com/watch?v=7F5rVxe4XXE',
       },
       {
         'type': 'Resource',
         'title': 'Healthy Drinks for Your Smile',
         'subtitle': 'Discover beverages that are tooth-friendly.',
-        'image': 'assets/images/rinsing.png',
-        'url': 'https://www.mouthhealthy.org/all-topics-a-z/beverages',
+        'image': 'assets/images/learn8.png',
+        'url':
+            'https://www.colgate.com/en-us/oral-health/nutrition-and-oral-health/drinks-that-can-harm-your-teeth',
       },
     ];
 
@@ -127,15 +128,15 @@ class _LearnScreenState extends State<LearnScreen> {
         'title': 'Understanding Gum Disease',
         'subtitle':
             'Learn about the causes, symptoms, and prevention of gum disease.',
-        'image': 'assets/images/detected_conditions.png',
+        'image': 'assets/images/learn9.png',
         'url':
-            'https://www.cdc.gov/oralhealth/conditions/periodontal-disease.html',
+            'https://my.clevelandclinic.org/health/diseases/21482-gum-periodontal-disease',
       },
       {
         'type': 'Article',
         'title': 'Tooth Decay: What You Need to Know',
         'subtitle': 'Find out how cavities form and how to protect your teeth.',
-        'image': 'assets/images/scan1.png',
+        'image': 'assets/images/learn10.png',
         'url':
             'https://www.mayoclinic.org/diseases-conditions/cavities/symptoms-causes/syc-20352892',
       },
@@ -143,15 +144,15 @@ class _LearnScreenState extends State<LearnScreen> {
         'type': 'Video',
         'title': 'Recognizing Oral Cancer Signs',
         'subtitle': 'A video guide to spotting early signs of oral cancer.',
-        'image': 'assets/images/scan2.png',
-        'url': 'https://www.youtube.com/watch?v=Q2vQwF8pQhA',
+        'image': 'assets/images/learn11.png',
+        'url': 'https://www.youtube.com/watch?v=vvP8Et1NPJU&t=12s',
       },
       {
         'type': 'Tip',
         'title': 'Regular Dental Checkups',
         'subtitle':
             'Visit your dentist every 6 months for early detection and prevention.',
-        'image': 'assets/images/clinic1.png',
+        'image': 'assets/images/learn12.png',
       },
     ];
 
@@ -161,22 +162,21 @@ class _LearnScreenState extends State<LearnScreen> {
         'title': 'Braces: What to Expect',
         'subtitle':
             'A beginner’s guide to orthodontic treatment and what to expect.',
-        'image': 'assets/images/icon_braces_care.png',
-        'url':
-            'https://www.aaoinfo.org/blog/what-to-expect-when-getting-braces/',
+        'image': 'assets/images/learn13.png',
+        'url': 'https://bexarsmiles.com/straight-talk-about-braces/',
       },
       {
         'type': 'Tip',
         'title': 'Caring for Braces',
         'subtitle': 'How to keep your teeth and braces clean and healthy.',
-        'image': 'assets/images/brushing_card.png',
+        'image': 'assets/images/learn14.png',
       },
       {
         'type': 'Video',
         'title': 'How Invisalign Works',
         'subtitle': 'A video explaining clear aligner treatment.',
-        'image': 'assets/images/scan3.png',
-        'url': 'https://www.youtube.com/watch?v=Q2vQwF8pQhA',
+        'image': 'assets/images/learn15.png',
+        'url': 'https://www.youtube.com/watch?v=Rg7yOACRjoA',
       },
       {
         'type': 'Resource',
