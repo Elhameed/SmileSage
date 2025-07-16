@@ -1052,6 +1052,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFF0A244E),
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                               SizedBox(height: 12),
                               Text(

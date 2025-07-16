@@ -612,63 +612,67 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
 
               const SizedBox(height: 16),
               // Bottom action buttons
-              Row(
-                children: [
-                  // Ask a Question (Outlined)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          ChatScreen.routeName,
-                          arguments: {
-                            'condition': _predictedCondition,
-                            'confidence': _confidence,
-                          },
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: primaryGreen, width: 1.2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Ask a Question (Outlined)
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            ChatScreen.routeName,
+                            arguments: {
+                              'condition': _predictedCondition,
+                              'confidence': _confidence,
+                            },
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side:
+                              const BorderSide(color: primaryGreen, width: 1.2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!.askAQuestion,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: primaryGreen,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  // Save to History (Filled)
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _handleSaveButton,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryGreen,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 2,
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!.saveToHistory,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                        child: Text(
+                          AppLocalizations.of(context)!.askAQuestion,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: primaryGreen,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    // Save to History (Filled)
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _handleSaveButton,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryGreen,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          elevation: 2,
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.saveToHistory,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
 
