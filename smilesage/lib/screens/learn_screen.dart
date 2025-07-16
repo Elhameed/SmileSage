@@ -4,6 +4,7 @@ import 'scan_workflow_screen.dart';
 import 'clinics_screen.dart';
 import 'tips_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LearnScreen extends StatefulWidget {
   static const routeName = '/learn';
@@ -44,149 +45,137 @@ class _LearnScreenState extends State<LearnScreen> {
     const indicatorColor = Color(0xFF7CF4A4);
     const goldText = Color(0xFFB58E31);
 
+    final loc = AppLocalizations.of(context)!;
     // Expanded content for all tabs
     final hygieneItems = [
       {
-        'type': 'Article',
-        'title': 'Mastering the Art of Flossing',
-        'subtitle':
-            'Learn the correct techniques for flossing to remove plaque and prevent gum disease.',
+        'type': loc.learnTypeArticle,
+        'title': loc.learnTitleFlossing,
+        'subtitle': loc.learnSubtitleFlossing,
         'image': 'assets/images/learn1.png',
         'url': 'https://www.mouthhealthy.org/all-topics-a-z/flossing',
       },
       {
-        'type': 'Video',
-        'title': 'Brushing Techniques for a Healthier Smile',
-        'subtitle':
-            'Watch a step-by-step video on effective brushing methods to keep your teeth clean and strong.',
+        'type': loc.learnTypeVideo,
+        'title': loc.learnTitleBrushing,
+        'subtitle': loc.learnSubtitleBrushing,
         'image': 'assets/images/learn2.png',
         'url': 'https://www.youtube.com/watch?v=3oG_JLuQ8T8',
       },
       {
-        'type': 'Article',
-        'title': 'The Importance of Tongue Scraping',
-        'subtitle':
-            'Discover the benefits of tongue scraping and how it can improve your oral hygiene.',
+        'type': loc.learnTypeArticle,
+        'title': loc.learnTitleTongueScraping,
+        'subtitle': loc.learnSubtitleTongueScraping,
         'image': 'assets/images/learn3.png',
         'url':
             'https://www.healthline.com/health/dental-and-oral-health/tongue-scraping',
       },
       {
-        'type': 'Tip',
-        'title': 'Replace Your Toothbrush Regularly',
-        'subtitle':
-            'Change your toothbrush every 3-4 months or sooner if bristles are frayed.',
+        'type': loc.learnTypeTip,
+        'title': loc.learnTitleReplaceToothbrush,
+        'subtitle': loc.learnSubtitleReplaceToothbrush,
         'image': 'assets/images/brushing.png',
       },
       {
-        'type': 'Resource',
-        'title': 'ADA Oral Hygiene Recommendations',
-        'subtitle': 'Official guidelines from the American Dental Association.',
+        'type': loc.learnTypeResource,
+        'title': loc.learnTitleADA,
+        'subtitle': loc.learnSubtitleADA,
         'image': 'assets/images/learn4.png',
         'url':
             'https://www.ada.org/resources/ada-library/oral-health-topics/home-care',
       },
     ];
-
     final dietItems = [
       {
-        'type': 'Article',
-        'title': 'Foods That Strengthen Your Teeth',
-        'subtitle':
-            'Explore foods rich in calcium and phosphorus for stronger enamel.',
+        'type': loc.learnTypeArticle,
+        'title': loc.learnTitleFoodsStrengthen,
+        'subtitle': loc.learnSubtitleFoodsStrengthen,
         'image': 'assets/images/learn5.png',
         'url':
             'https://www.colgate.com/en-us/oral-health/nutrition-and-oral-health/healthy-foods-list-seven-best-foods-for-your-teeth',
       },
       {
-        'type': 'Tip',
-        'title': 'Limit Sugary Snacks',
-        'subtitle': 'Reduce sugar intake to prevent cavities and tooth decay.',
+        'type': loc.learnTypeTip,
+        'title': loc.learnTitleLimitSugar,
+        'subtitle': loc.learnSubtitleLimitSugar,
         'image': 'assets/images/learn6.png',
       },
       {
-        'type': 'Video',
-        'title': 'How Diet Affects Oral Health',
-        'subtitle':
-            'A short video on the impact of nutrition on your teeth and gums.',
+        'type': loc.learnTypeVideo,
+        'title': loc.learnTitleDietVideo,
+        'subtitle': loc.learnSubtitleDietVideo,
         'image': 'assets/images/learn7.png',
         'url': 'https://www.youtube.com/watch?v=7F5rVxe4XXE',
       },
       {
-        'type': 'Resource',
-        'title': 'Healthy Drinks for Your Smile',
-        'subtitle': 'Discover beverages that are tooth-friendly.',
+        'type': loc.learnTypeResource,
+        'title': loc.learnTitleHealthyDrinks,
+        'subtitle': loc.learnSubtitleHealthyDrinks,
         'image': 'assets/images/learn8.png',
         'url':
             'https://www.colgate.com/en-us/oral-health/nutrition-and-oral-health/drinks-that-can-harm-your-teeth',
       },
     ];
-
     final diseasesItems = [
       {
-        'type': 'Article',
-        'title': 'Understanding Gum Disease',
-        'subtitle':
-            'Learn about the causes, symptoms, and prevention of gum disease.',
+        'type': loc.learnTypeArticle,
+        'title': loc.learnTitleGumDisease,
+        'subtitle': loc.learnSubtitleGumDisease,
         'image': 'assets/images/learn9.png',
         'url':
             'https://my.clevelandclinic.org/health/diseases/21482-gum-periodontal-disease',
       },
       {
-        'type': 'Article',
-        'title': 'Tooth Decay: What You Need to Know',
-        'subtitle': 'Find out how cavities form and how to protect your teeth.',
+        'type': loc.learnTypeArticle,
+        'title': loc.learnTitleToothDecay,
+        'subtitle': loc.learnSubtitleToothDecay,
         'image': 'assets/images/learn10.png',
         'url':
             'https://www.mayoclinic.org/diseases-conditions/cavities/symptoms-causes/syc-20352892',
       },
       {
-        'type': 'Video',
-        'title': 'Recognizing Oral Cancer Signs',
-        'subtitle': 'A video guide to spotting early signs of oral cancer.',
+        'type': loc.learnTypeVideo,
+        'title': loc.learnTitleOralCancer,
+        'subtitle': loc.learnSubtitleOralCancer,
         'image': 'assets/images/learn11.png',
         'url': 'https://www.youtube.com/watch?v=vvP8Et1NPJU&t=12s',
       },
       {
-        'type': 'Tip',
-        'title': 'Regular Dental Checkups',
-        'subtitle':
-            'Visit your dentist every 6 months for early detection and prevention.',
+        'type': loc.learnTypeTip,
+        'title': loc.learnTitleDentalCheckups,
+        'subtitle': loc.learnSubtitleDentalCheckups,
         'image': 'assets/images/learn12.png',
       },
     ];
-
     final orthoItems = [
       {
-        'type': 'Article',
-        'title': 'Braces: What to Expect',
-        'subtitle':
-            'A beginner’s guide to orthodontic treatment and what to expect.',
+        'type': loc.learnTypeArticle,
+        'title': loc.learnTitleBraces,
+        'subtitle': loc.learnSubtitleBraces,
         'image': 'assets/images/learn13.png',
         'url': 'https://bexarsmiles.com/straight-talk-about-braces/',
       },
       {
-        'type': 'Tip',
-        'title': 'Caring for Braces',
-        'subtitle': 'How to keep your teeth and braces clean and healthy.',
+        'type': loc.learnTypeTip,
+        'title': loc.learnTitleCaringBraces,
+        'subtitle': loc.learnSubtitleCaringBraces,
         'image': 'assets/images/learn14.png',
       },
       {
-        'type': 'Video',
-        'title': 'How Invisalign Works',
-        'subtitle': 'A video explaining clear aligner treatment.',
+        'type': loc.learnTypeVideo,
+        'title': loc.learnTitleInvisalign,
+        'subtitle': loc.learnSubtitleInvisalign,
         'image': 'assets/images/learn15.png',
         'url': 'https://www.youtube.com/watch?v=Rg7yOACRjoA',
       },
       {
-        'type': 'Resource',
-        'title': 'Find an Orthodontist',
-        'subtitle': 'Search for certified orthodontists near you.',
+        'type': loc.learnTypeResource,
+        'title': loc.learnTitleFindOrtho,
+        'subtitle': loc.learnSubtitleFindOrtho,
         'image': 'assets/images/clinic_map.png',
         'url': 'https://www.aaoinfo.org/locator/',
       },
     ];
-
     return DefaultTabController(
       length: 4,
       child: Scaffold(
@@ -198,9 +187,10 @@ class _LearnScreenState extends State<LearnScreen> {
             icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: const Text(
-            'Learn',
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          title: Text(
+            loc.learnTabOrthodontics, // Or use a localized title if needed
+            style: const TextStyle(
+                color: Colors.black, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
         ),
@@ -212,7 +202,8 @@ class _LearnScreenState extends State<LearnScreen> {
               child: TextField(
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search),
-                  hintText: 'Search',
+                  hintText:
+                      loc.search, // Use a localized search hint if available
                   filled: true,
                   fillColor: inputBg,
                   border: OutlineInputBorder(
@@ -222,7 +213,6 @@ class _LearnScreenState extends State<LearnScreen> {
                 ),
               ),
             ),
-
             // 2) Tab bar
             TabBar(
               indicatorColor: indicatorColor,
@@ -232,14 +222,13 @@ class _LearnScreenState extends State<LearnScreen> {
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
-              tabs: const [
-                Tab(text: 'Hygiene'),
-                Tab(text: 'Diet'),
-                Tab(text: 'Diseases'),
-                Tab(text: 'Orthodontics'),
+              tabs: [
+                Tab(text: loc.learnTabHygiene),
+                Tab(text: loc.learnTabDiet),
+                Tab(text: loc.learnTabDiseases),
+                Tab(text: loc.learnTabOrthodontics),
               ],
             ),
-
             // 3) Tab views
             Expanded(
               child: TabBarView(
@@ -260,6 +249,7 @@ class _LearnScreenState extends State<LearnScreen> {
                         subtitle: item['subtitle']!,
                         imagePath: item['image']!,
                         url: item['url'],
+                        unableToOpenLink: loc.learnUnableToOpenLink,
                       );
                     },
                   ),
@@ -279,6 +269,7 @@ class _LearnScreenState extends State<LearnScreen> {
                         subtitle: item['subtitle']!,
                         imagePath: item['image']!,
                         url: item['url'],
+                        unableToOpenLink: loc.learnUnableToOpenLink,
                       );
                     },
                   ),
@@ -298,6 +289,7 @@ class _LearnScreenState extends State<LearnScreen> {
                         subtitle: item['subtitle']!,
                         imagePath: item['image']!,
                         url: item['url'],
+                        unableToOpenLink: loc.learnUnableToOpenLink,
                       );
                     },
                   ),
@@ -317,6 +309,7 @@ class _LearnScreenState extends State<LearnScreen> {
                         subtitle: item['subtitle']!,
                         imagePath: item['image']!,
                         url: item['url'],
+                        unableToOpenLink: loc.learnUnableToOpenLink,
                       );
                     },
                   ),
@@ -325,7 +318,6 @@ class _LearnScreenState extends State<LearnScreen> {
             ),
           ],
         ),
-
         // 4) Bottom navigation
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
@@ -335,26 +327,27 @@ class _LearnScreenState extends State<LearnScreen> {
           currentIndex: _selectedIndex,
           onTap: _onNavItemTapped,
           showUnselectedLabels: true,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: ImageIcon(AssetImage('assets/images/icon_home.png')),
-              label: 'Home',
+              icon: const ImageIcon(AssetImage('assets/images/icon_home.png')),
+              label: AppLocalizations.of(context)!.home,
             ),
             BottomNavigationBarItem(
-              icon: ImageIcon(AssetImage('assets/images/icon_tips.png')),
-              label: 'Tips',
+              icon: const ImageIcon(AssetImage('assets/images/icon_tips.png')),
+              label: AppLocalizations.of(context)!.tips,
             ),
             BottomNavigationBarItem(
-              icon: ImageIcon(AssetImage('assets/images/icon_scan.png')),
-              label: 'Scan',
+              icon: const ImageIcon(AssetImage('assets/images/icon_scan.png')),
+              label: AppLocalizations.of(context)!.scan,
             ),
             BottomNavigationBarItem(
-              icon: ImageIcon(AssetImage('assets/images/icon_clinics.png')),
-              label: 'Clinics',
+              icon:
+                  const ImageIcon(AssetImage('assets/images/icon_clinics.png')),
+              label: AppLocalizations.of(context)!.clinics,
             ),
             BottomNavigationBarItem(
-              icon: ImageIcon(AssetImage('assets/images/icon_learn.png')),
-              label: 'Learn',
+              icon: const ImageIcon(AssetImage('assets/images/icon_learn.png')),
+              label: AppLocalizations.of(context)!.learn,
             ),
           ],
         ),
@@ -363,13 +356,13 @@ class _LearnScreenState extends State<LearnScreen> {
   }
 }
 
-/// A single content row in the Learn screen
 class _LearnTile extends StatelessWidget {
   final String type;
   final String title;
   final String subtitle;
   final String imagePath;
   final String? url;
+  final String unableToOpenLink;
 
   const _LearnTile({
     Key? key,
@@ -378,6 +371,7 @@ class _LearnTile extends StatelessWidget {
     required this.subtitle,
     required this.imagePath,
     this.url,
+    required this.unableToOpenLink,
   }) : super(key: key);
 
   void _launchUrl(BuildContext context) async {
@@ -387,7 +381,7 @@ class _LearnTile extends StatelessWidget {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to open link.')),
+          SnackBar(content: Text(unableToOpenLink)),
         );
       }
     }
@@ -422,7 +416,7 @@ class _LearnTile extends StatelessWidget {
                     if (url != null) ...[
                       const SizedBox(width: 6),
                       Icon(
-                        type == 'Video'
+                        type == AppLocalizations.of(context)!.learnTypeVideo
                             ? Icons.play_circle_fill
                             : Icons.open_in_new,
                         size: 16,
