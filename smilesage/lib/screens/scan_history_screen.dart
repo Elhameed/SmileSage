@@ -58,6 +58,12 @@ class _ScanHistoryScreenState extends State<ScanHistoryScreen> {
         .toList();
 
     await prefs.setStringList('scan_history', updatedList);
+    // Also delete from Firestore if possible
+    try {
+      await ProfileService().deleteScanFromCloud(target.timestamp);
+    } catch (e) {
+      // Ignore if not logged in or offline
+    }
   }
 
   @override

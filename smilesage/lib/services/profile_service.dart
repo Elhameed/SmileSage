@@ -281,4 +281,17 @@ class ProfileService {
         .map((e) => BrushingLog.fromJson(Map<String, dynamic>.from(e)))
         .toList();
   }
+
+  /// Delete a scan from Firestore for the current user by scan timestamp
+  Future<void> deleteScanFromCloud(DateTime timestamp) async {
+    if (!isAuthenticated) throw Exception('User not authenticated');
+    final userId = currentUserId!;
+    final scanId = timestamp.toIso8601String();
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('scan_reports')
+        .doc(scanId)
+        .delete();
+  }
 }
