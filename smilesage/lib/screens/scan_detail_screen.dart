@@ -100,9 +100,8 @@ class ScanDetailScreen extends StatelessWidget {
                 scanResult.explanation!.isNotEmpty)
               Builder(
                 builder: (context) {
-                  final isFrench =
-                      Localizations.localeOf(context).languageCode == 'fr';
-                  if (!isFrench) {
+                  final lang = Localizations.localeOf(context).languageCode;
+                  if (!(lang == 'fr' || lang == 'sw')) {
                     return Text(
                       scanResult.explanation!,
                       style: const TextStyle(
@@ -114,7 +113,7 @@ class ScanDetailScreen extends StatelessWidget {
                   }
                   return FutureBuilder<String>(
                     future: TranslationService.translateText(
-                        scanResult.explanation!, 'fr'),
+                        scanResult.explanation!, lang),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const CircularProgressIndicator();

@@ -287,13 +287,15 @@ class _TipsScreenState extends State<TipsScreen>
       tips = List<Map<String, String>>.from(_staticTips);
     }
     // Translate all tips if needed
-    if (tips.isNotEmpty &&
-        Localizations.localeOf(context).languageCode == 'fr') {
-      for (var tip in tips) {
-        tip['title'] =
-            await TranslationService.translateText(tip['title'] ?? '', 'fr');
-        tip['desc'] =
-            await TranslationService.translateText(tip['desc'] ?? '', 'fr');
+    if (tips.isNotEmpty) {
+      final lang = Localizations.localeOf(context).languageCode;
+      if (lang == 'fr' || lang == 'sw') {
+        for (var tip in tips) {
+          tip['title'] =
+              await TranslationService.translateText(tip['title'] ?? '', lang);
+          tip['desc'] =
+              await TranslationService.translateText(tip['desc'] ?? '', lang);
+        }
       }
     }
     setState(() {

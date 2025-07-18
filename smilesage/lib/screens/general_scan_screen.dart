@@ -161,9 +161,10 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
         final jsonResponse = json.decode(response.body);
         String explanation = jsonResponse['response'];
         // Translate if needed
-        if (Localizations.localeOf(context).languageCode == 'fr') {
+        final lang = Localizations.localeOf(context).languageCode;
+        if (lang == 'fr' || lang == 'sw') {
           explanation =
-              await TranslationService.translateText(explanation, 'fr');
+              await TranslationService.translateText(explanation, lang);
         }
         setState(() {
           _explanation = explanation;

@@ -119,6 +119,7 @@ class DentalApp extends StatelessWidget {
       supportedLocales: const [
         Locale('en'),
         Locale('fr'),
+        Locale('sw'), // Added Swahili support
       ],
       initialRoute: StartScreen.routeName,
       navigatorObservers: [routeObserver],

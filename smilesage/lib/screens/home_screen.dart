@@ -39,6 +39,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with RouteAware {
   // Tracks which bottom nav item is selected; Home = 0
   int _selectedIndex = 0;
+  late Locale _selectedLocale;
 
   String? _profileImageBase64;
   int _brushingStreak = 0;
@@ -58,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   @override
   void initState() {
     super.initState();
+    _selectedLocale = widget.currentLocale;
     _initializeProfile();
     _loadProfileImage();
     _loadBrushingStreak();
@@ -239,14 +241,15 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
       ];
     }
     // Translate all tips if needed
-    if (tips.isNotEmpty &&
-        Localizations.localeOf(context).languageCode == 'fr') {
-      for (var tip in tips) {
-        tip['title'] =
-            await TranslationService.translateText(tip['title'] ?? '', 'fr');
-        tip['desc'] =
-            await TranslationService.translateText(tip['desc'] ?? '', 'fr');
-        // imageKey remains unchanged
+    if (tips.isNotEmpty) {
+      final lang = Localizations.localeOf(context).languageCode;
+      if (lang == 'fr' || lang == 'sw') {
+        for (var tip in tips) {
+          tip['title'] =
+              await TranslationService.translateText(tip['title'] ?? '', lang);
+          tip['desc'] =
+              await TranslationService.translateText(tip['desc'] ?? '', lang);
+        }
       }
     }
     setState(() {
@@ -406,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                       ),
                       // Language dropdown
                       DropdownButton<Locale>(
-                        value: widget.currentLocale,
+                        value: _selectedLocale,
                         underline: const SizedBox(),
                         icon: const Icon(Icons.language, color: darkText),
                         items: const [
@@ -418,9 +421,16 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                             value: Locale('fr'),
                             child: Text('FR'),
                           ),
+                          DropdownMenuItem(
+                            value: Locale('sw'),
+                            child: Text('SW'),
+                          ),
                         ],
                         onChanged: (Locale? newLocale) {
                           if (newLocale != null) {
+                            setState(() {
+                              _selectedLocale = newLocale;
+                            });
                             widget.onLocaleChanged(newLocale);
                           }
                         },
