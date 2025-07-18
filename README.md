@@ -131,10 +131,6 @@ SmileSage/
 ## ML Model
 - Training: See [notebook/SmileSage_dental_scanner_implementation.ipynb](notebook/SmileSage_dental_scanner_implementation.ipynb)
 
-## Testing
-To run the Flutter tests:
-```
-
 ## 📝 Contact / Support
 For questions or support, please contact: [a.ajani@alustudent.com]
 
