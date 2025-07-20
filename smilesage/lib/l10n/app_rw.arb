@@ -296,4 +296,11 @@
   "learnTitleFindOrtho": "Shaka muganga w'amenyo y'inyuma",
   "learnSubtitleFindOrtho": "Shakisha abaganga b'amenyo y'inyuma bemewe hafi yawe.",
   "learnUnableToOpenLink": "Ntibishobotse gufungura ihuriro."
+  ,
+  "videoScan": "Gusuzuma Video",
+  "recordVideo": "Fata Video",
+  "videoSelected": "Video yatoranijwe",
+  "noVideoSelected": "Nta video yatoranijwe",
+  "analyzeVideo": "Sesa Video",
+  "videoScanResults": "Ibisubizo bya Video Scan"
 } 

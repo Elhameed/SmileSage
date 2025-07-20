@@ -298,5 +298,11 @@
   "learnSubtitleInvisalign": "Video inayoeleza matibabu ya aligner wazi.",
   "learnTitleFindOrtho": "Tafuta Mtaalamu wa Ukarabati wa Meno",
   "learnSubtitleFindOrtho": "Tafuta wataalamu wa ukarabati wa meno walioidhinishwa karibu nawe.",
-  "learnUnableToOpenLink": "Haiwezi kufungua kiungo."
+  "learnUnableToOpenLink": "Haiwezi kufungua kiungo.",
+  "videoScan": "Uchunguzi wa Video",
+  "recordVideo": "Rekodi Video",
+  "videoSelected": "Video imechaguliwa",
+  "noVideoSelected": "Hakuna video iliyochaguliwa",
+  "analyzeVideo": "Chambua Video",
+  "videoScanResults": "Matokeo ya Uchunguzi wa Video"
 }

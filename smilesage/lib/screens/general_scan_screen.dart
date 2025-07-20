@@ -13,6 +13,8 @@ import 'dart:async';
 import 'chat_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../services/translation_service.dart';
+import 'package:video_player/video_player.dart';
+import 'video_scan_guidance_screen.dart';
 
 class GeneralScanScreen extends StatefulWidget {
   static const routeName = '/general-scan';
@@ -36,11 +38,25 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
   String? _explanation; // For storing the condition explanation
   bool _isFetchingExplanation = false; // Loading state for explanation
 
+  File? _selectedVideo;
+  VideoPlayerController? _videoController;
+  bool _isVideoProcessing = false;
+  String? _videoMajorityCondition;
+  double? _videoMajorityConfidence;
+  int? _videoMajorityCount;
+  int? _videoNumFrames;
+  int? _videoKeyFrameIndex;
+  double? _videoKeyFrameConfidence;
+  Uint8List? _videoGradcamBytes;
+  List<Map<String, dynamic>>? _videoPerFrameResults;
+
   static const String _apiEndpoint =
       "https://teniola04-dental-api.hf.space/predict";
   static const String _explanationEndpoint =
       "https://teniola04-gemini-dental-chat.hf.space/chat"; // Gemini proxy
   static const Duration _apiTimeout = Duration(seconds: 30);
+  static const String _videoApiEndpoint =
+      "https://teniola04-dental-api.hf.space/predict-video";
 
   final ImagePicker _picker = ImagePicker();
 
@@ -95,6 +111,66 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
     } catch (e) {
       _showSnackBar(
           AppLocalizations.of(context)!.errorCapturingImage(e.toString()));
+    }
+  }
+
+  Future<void> _pickVideo() async {
+    try {
+      final XFile? pickedFile = await _picker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: const Duration(seconds: 10),
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _selectedVideo = File(pickedFile.path);
+          _videoController?.dispose();
+          _videoController = VideoPlayerController.file(_selectedVideo!)
+            ..initialize().then((_) {
+              setState(() {});
+              _videoController!.setLooping(true);
+            });
+          _videoMajorityCondition = null;
+          _videoMajorityConfidence = null;
+          _videoMajorityCount = null;
+          _videoNumFrames = null;
+          _videoKeyFrameIndex = null;
+          _videoKeyFrameConfidence = null;
+          _videoGradcamBytes = null;
+          _videoPerFrameResults = null;
+        });
+      }
+    } catch (e) {
+      _showSnackBar('Error selecting video: $e');
+    }
+  }
+
+  Future<void> _pickVideoFromCamera() async {
+    try {
+      final XFile? pickedFile = await _picker.pickVideo(
+        source: ImageSource.camera,
+        maxDuration: const Duration(seconds: 10),
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _selectedVideo = File(pickedFile.path);
+          _videoController?.dispose();
+          _videoController = VideoPlayerController.file(_selectedVideo!)
+            ..initialize().then((_) {
+              setState(() {});
+              _videoController!.setLooping(true);
+            });
+          _videoMajorityCondition = null;
+          _videoMajorityConfidence = null;
+          _videoMajorityCount = null;
+          _videoNumFrames = null;
+          _videoKeyFrameIndex = null;
+          _videoKeyFrameConfidence = null;
+          _videoGradcamBytes = null;
+          _videoPerFrameResults = null;
+        });
+      }
+    } catch (e) {
+      _showSnackBar('Error capturing video: $e');
     }
   }
 
@@ -279,6 +355,65 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
     }
   }
 
+  Future<void> _runVideoInference() async {
+    if (_selectedVideo == null) {
+      _showSnackBar('Please select a video first.');
+      return;
+    }
+    setState(() {
+      _isVideoProcessing = true;
+    });
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse(_videoApiEndpoint))
+        ..files.add(await http.MultipartFile.fromPath(
+          'file',
+          _selectedVideo!.path,
+          contentType: MediaType('video', 'mp4'),
+        ));
+      var response = await request.send().timeout(_apiTimeout);
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        final jsonResponse = json.decode(responseBody);
+        setState(() {
+          _videoMajorityCondition = jsonResponse['majority_condition'];
+          _videoMajorityConfidence =
+              (jsonResponse['majority_confidence'] as num?)?.toDouble();
+          _videoMajorityCount = jsonResponse['majority_count'] as int?;
+          _videoNumFrames = jsonResponse['num_frames'] as int?;
+          _videoKeyFrameIndex = jsonResponse['key_frame_index'] as int?;
+          _videoKeyFrameConfidence =
+              (jsonResponse['key_frame_confidence'] as num?)?.toDouble();
+          _videoGradcamBytes = jsonResponse['gradcam_base64'] != null
+              ? base64Decode(jsonResponse['gradcam_base64'])
+              : null;
+          _videoPerFrameResults =
+              (jsonResponse['per_frame_results'] as List<dynamic>?)
+                  ?.cast<Map<String, dynamic>>();
+        });
+      } else {
+        final errorBody = await response.stream.bytesToString();
+        _showSnackBar('API error: ${response.statusCode} $errorBody');
+      }
+    } on TimeoutException {
+      _showSnackBar('Video scan request timed out.');
+    } catch (e) {
+      _showSnackBar('Error analyzing video: $e');
+    } finally {
+      setState(() {
+        _isVideoProcessing = false;
+      });
+    }
+  }
+
+  Future<void> _showVideoGuidanceAndRecord() async {
+    final proceed = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const VideoScanGuidanceScreen()),
+    );
+    if (proceed == true) {
+      await _pickVideoFromCamera();
+    }
+  }
+
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -329,6 +464,12 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
   }
 
   @override
@@ -678,6 +819,220 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
             ],
 
             const SizedBox(height: 24),
+
+            // Video scan section
+            const SizedBox(height: 24),
+            Text(
+              AppLocalizations.of(context)!.videoScan,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0A244E),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 200,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Color(0xFFE8F4EC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: _selectedVideo != null &&
+                      _videoController != null &&
+                      _videoController!.value.isInitialized
+                  ? Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: AspectRatio(
+                            aspectRatio: _videoController!.value.aspectRatio,
+                            child: VideoPlayer(_videoController!),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: FloatingActionButton(
+                            mini: true,
+                            backgroundColor: Colors.white,
+                            onPressed: () {
+                              setState(() {
+                                if (_videoController!.value.isPlaying) {
+                                  _videoController!.pause();
+                                } else {
+                                  _videoController!.play();
+                                }
+                              });
+                            },
+                            child: Icon(
+                              _videoController!.value.isPlaying
+                                  ? Icons.pause
+                                  : Icons.play_arrow,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.videocam_outlined,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: _showVideoGuidanceAndRecord,
+                              icon: const Icon(Icons.videocam),
+                              label: Text(
+                                  AppLocalizations.of(context)!.recordVideo),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF7CF4A4),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            OutlinedButton.icon(
+                              onPressed: _pickVideo,
+                              icon: const Icon(Icons.video_library),
+                              label:
+                                  Text(AppLocalizations.of(context)!.gallery),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                    color: Color(0xFF7CF4A4), width: 1.2),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: Text(
+                _selectedVideo != null
+                    ? AppLocalizations.of(context)!.videoSelected
+                    : AppLocalizations.of(context)!.noVideoSelected,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF3A3A3A)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: SizedBox(
+                width: 160,
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: _selectedVideo != null && !_isVideoProcessing
+                      ? _runVideoInference
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF7CF4A4),
+                    shape: const StadiumBorder(),
+                    elevation: 2,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                  ),
+                  child: _isVideoProcessing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text(
+                          AppLocalizations.of(context)!.analyzeVideo,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            if (_videoMajorityCondition != null) ...[
+              Text(
+                AppLocalizations.of(context)!.videoScanResults,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0A244E),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: Color(0xFFE8F4EC),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Majority Condition: $_videoMajorityCondition',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    if (_videoMajorityConfidence != null)
+                      Text(
+                          'Avg. Confidence: ${(_videoMajorityConfidence! * 100).toStringAsFixed(1)}%',
+                          style: const TextStyle(fontSize: 14)),
+                    if (_videoMajorityCount != null && _videoNumFrames != null)
+                      Text(
+                          'Detected in $_videoMajorityCount out of $_videoNumFrames frames',
+                          style: const TextStyle(fontSize: 14)),
+                    if (_videoKeyFrameIndex != null &&
+                        _videoKeyFrameConfidence != null)
+                      Text(
+                          'Key Frame: #$_videoKeyFrameIndex (Confidence: ${(_videoKeyFrameConfidence! * 100).toStringAsFixed(1)}%)',
+                          style: const TextStyle(fontSize: 14)),
+                    const SizedBox(height: 12),
+                    if (_videoGradcamBytes != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.memory(_videoGradcamBytes!,
+                            fit: BoxFit.cover),
+                      ),
+                    const SizedBox(height: 12),
+                    if (_videoPerFrameResults != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Per-frame Results:',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          ..._videoPerFrameResults!.map((frame) => Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 2.0),
+                                child: Text(
+                                    'Frame ${frame['frame_index']}: ${frame['condition']} (${(frame['confidence'] * 100).toStringAsFixed(1)}%)'),
+                              )),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

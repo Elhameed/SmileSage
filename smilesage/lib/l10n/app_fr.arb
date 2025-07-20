@@ -298,5 +298,11 @@
   "learnSubtitleInvisalign": "Une vidéo expliquant le traitement par aligneurs transparents.",
   "learnTitleFindOrtho": "Trouver un orthodontiste",
   "learnSubtitleFindOrtho": "Recherchez des orthodontistes certifiés près de chez vous.",
-  "learnUnableToOpenLink": "Impossible d'ouvrir le lien."
+  "learnUnableToOpenLink": "Impossible d'ouvrir le lien.",
+  "videoScan": "Scan Vidéo",
+  "recordVideo": "Enregistrer une vidéo",
+  "videoSelected": "Vidéo sélectionnée",
+  "noVideoSelected": "Aucune vidéo sélectionnée",
+  "analyzeVideo": "Analyser la vidéo",
+  "videoScanResults": "Résultats du scan vidéo"
 } 

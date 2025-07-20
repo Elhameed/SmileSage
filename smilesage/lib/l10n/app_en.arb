@@ -298,5 +298,11 @@
   "learnSubtitleInvisalign": "A video explaining clear aligner treatment.",
   "learnTitleFindOrtho": "Find an Orthodontist",
   "learnSubtitleFindOrtho": "Search for certified orthodontists near you.",
-  "learnUnableToOpenLink": "Unable to open link."
+  "learnUnableToOpenLink": "Unable to open link.",
+  "videoScan": "Video Scan",
+  "recordVideo": "Record Video",
+  "videoSelected": "Video selected",
+  "noVideoSelected": "No video selected",
+  "analyzeVideo": "Analyze Video",
+  "videoScanResults": "Video Scan Results"
 } 
