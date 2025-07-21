@@ -20,6 +20,7 @@ import 'scan_detail_screen.dart';
 import '../services/profile_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../services/translation_service.dart';
+import 'dart:async';
 
 // Add a global RouteObserver in main.dart and import it here
 import '../main.dart';
@@ -54,7 +55,11 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   final int _brushingGoal = 7;
   int _scansThisMonth = 0;
   final int _scanGoal = 4;
-  // Remove _selectedLocale from state, use widget.currentLocale instead
+
+  // Add for tip carousel
+  late final PageController _tipPageController;
+  int _currentTipPage = 0;
+  Timer? _tipAutoPageTimer;
 
   @override
   void initState() {
@@ -66,6 +71,30 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     _loadRecentScans();
     _loadDailyTips();
     _loadNearestClinic();
+    _tipPageController = PageController();
+    _startTipAutoPageTimer();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    _tipAutoPageTimer?.cancel();
+    _tipPageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Register this screen as a route observer
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPopNext() {
+    // Called when coming back to this screen
+    _loadRecentScans();
+    super.didPopNext();
   }
 
   Future<void> _initializeProfile() async {
@@ -77,24 +106,17 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Register this screen as a route observer
-    routeObserver.subscribe(this, ModalRoute.of(context)!);
-  }
-
-  @override
-  void dispose() {
-    routeObserver.unsubscribe(this);
-    super.dispose();
-  }
-
-  @override
-  void didPopNext() {
-    // Called when coming back to this screen
-    _loadRecentScans();
-    super.didPopNext();
+  void _startTipAutoPageTimer() {
+    _tipAutoPageTimer?.cancel();
+    _tipAutoPageTimer = Timer.periodic(const Duration(seconds: 12), (timer) {
+      if (_dailyTips.isEmpty) return;
+      int nextPage = (_currentTipPage + 1) % _dailyTips.length;
+      _tipPageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    });
   }
 
   Future<void> _loadProfileImage() async {
@@ -340,6 +362,13 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
       default:
         return 'assets/images/icon_braces_care.png';
     }
+  }
+
+  void _onTipPageChanged(int index) {
+    setState(() {
+      _currentTipPage = index;
+    });
+    _startTipAutoPageTimer(); // Reset timer on manual swipe
   }
 
   @override
@@ -754,7 +783,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Today's Tip Card
+                // Today's Tip Card (carousel)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: _loadingTips
@@ -769,101 +798,161 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                             ),
                           ),
                         )
-                      : Container(
-                          constraints: const BoxConstraints(minHeight: 120),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                      : (_dailyTips.isEmpty
+                          ? Container(
+                              constraints: const BoxConstraints(minHeight: 120),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              // Tip text
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 18, vertical: 16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        _dailyTips.isNotEmpty
-                                            ? _dailyTips[0]['title'] ?? ''
-                                            : '',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Color(0xFF0A244E),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        _dailyTips.isNotEmpty
-                                            ? _dailyTips[0]['desc'] ?? ''
-                                            : '',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Color(0xFF4CAF50),
-                                        ),
-                                        maxLines: 3,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 14),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.of(context)
-                                              .pushNamed(TipsScreen.routeName);
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xFFE8F2E8),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
+                              child: Center(
+                                child: Text(AppLocalizations.of(context)!
+                                    .noScanHistory),
+                              ),
+                            )
+                          : Column(
+                              children: [
+                                SizedBox(
+                                  height: 185,
+                                  child: PageView.builder(
+                                    controller: _tipPageController,
+                                    itemCount: _dailyTips.length,
+                                    onPageChanged: _onTipPageChanged,
+                                    itemBuilder: (context, index) {
+                                      final tip = _dailyTips[index];
+                                      return Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          // Tip text
+                                          Expanded(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 18,
+                                                      vertical: 16),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    tip['title'] ?? '',
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16,
+                                                      color: Color(0xFF0A244E),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 6),
+                                                  Text(
+                                                    tip['desc'] ?? '',
+                                                    style: const TextStyle(
+                                                      fontSize: 14,
+                                                      color: Color(0xFF4CAF50),
+                                                    ),
+                                                    maxLines: 3,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                  const SizedBox(height: 14),
+                                                  ElevatedButton(
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pushNamed(TipsScreen
+                                                              .routeName);
+                                                    },
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor:
+                                                          Color(0xFFE8F2E8),
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(12),
+                                                      ),
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 20,
+                                                          vertical: 10),
+                                                      elevation: 0,
+                                                    ),
+                                                    child: Text(
+                                                      AppLocalizations.of(
+                                                              context)!
+                                                          .readMore,
+                                                      style: const TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: darkText,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 20, vertical: 10),
-                                          elevation: 0,
-                                        ),
-                                        child: Text(
-                                          AppLocalizations.of(context)!
-                                              .readMore,
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: darkText,
+                                          // Tip image
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: 16),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                              child: Image.asset(
+                                                _getTipImage(tip),
+                                                width: 90,
+                                                height: 90,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    ],
+                                        ],
+                                      );
+                                    },
                                   ),
                                 ),
-                              ),
-                              // Tip image
-                              if (_dailyTips.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 16),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(14),
-                                    child: Image.asset(
-                                      _getTipImage(_dailyTips[0]),
-                                      width: 90,
-                                      height: 90,
-                                      fit: BoxFit.cover,
+                                // Page indicator dots
+                                if (_dailyTips.length > 1)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: List.generate(
+                                        _dailyTips.length,
+                                        (index) => AnimatedContainer(
+                                          duration:
+                                              const Duration(milliseconds: 300),
+                                          margin: const EdgeInsets.symmetric(
+                                              horizontal: 4),
+                                          width:
+                                              _currentTipPage == index ? 16 : 8,
+                                          height: 8,
+                                          decoration: BoxDecoration(
+                                            color: _currentTipPage == index
+                                                ? Color(0xFF7CF4A4)
+                                                : Colors.grey[300],
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                            ],
-                          ),
-                        ),
+                              ],
+                            )),
                 ),
                 const SizedBox(height: 24),
 

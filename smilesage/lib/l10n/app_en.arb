@@ -300,9 +300,9 @@
   "learnSubtitleFindOrtho": "Search for certified orthodontists near you.",
   "learnUnableToOpenLink": "Unable to open link.",
   "videoScan": "Video Scan",
-  "recordVideo": "Record Video",
+  "recordVideo": "Take Scan",
   "videoSelected": "Video selected",
   "noVideoSelected": "No video selected",
-  "analyzeVideo": "Analyze Video",
+  "analyzeVideo": "Analyze Scan",
   "videoScanResults": "Video Scan Results"
 } 
