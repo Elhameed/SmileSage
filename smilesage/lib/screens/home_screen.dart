@@ -211,24 +211,11 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           for (var tip in tipsJson) {
             if (tip is Map && tip.containsKey('title')) {
               final desc = tip['desc'] ?? tip['description'] ?? '';
-              // Try to infer imageKey from English before translation
-              String imageKey = '';
-              final title = (tip['title'] ?? '').toLowerCase();
-              final descLower = desc.toLowerCase();
-              if (title.contains('floss') || descLower.contains('floss')) {
-                imageKey = 'floss';
-              } else if (title.contains('brush') ||
-                  descLower.contains('brush')) {
-                imageKey = 'brush';
-              } else if (title.contains('rinse') ||
-                  descLower.contains('rinse')) {
-                imageKey = 'rinse';
-              }
               tips.add({
                 'icon': 'assets/images/icon_braces_care.png',
                 'title': tip['title'],
                 'desc': desc,
-                'imageKey': imageKey,
+                // Remove imageKey assignment here
               });
             }
           }
@@ -244,26 +231,53 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           'title': 'Braces Care: Gentle Brushing',
           'desc':
               'Brush gently around brackets and wires to remove plaque and food particles.',
-          'imageKey': 'brush',
         },
         {
           'icon': 'assets/images/icon_braces_care.png',
           'title': 'Braces Care: Flossing',
           'desc':
               'Use a floss threader or interdental brush to clean between teeth and under wires.',
-          'imageKey': 'floss',
         },
         {
           'icon': 'assets/images/icon_braces_care.png',
           'title': 'Braces Care: Mouthwash',
           'desc':
               'Rinse with fluoride mouthwash to strengthen enamel and prevent cavities.',
-          'imageKey': 'rinse',
         },
       ];
     }
-    // Translate all tips if needed
+    // Assign unique images to each tip
     if (tips.isNotEmpty) {
+      final possibleImages = ['brush', 'floss', 'rinse'];
+      final usedImages = <String>{};
+      for (var tip in tips) {
+        String imageKey = '';
+        final title = (tip['title'] ?? '').toLowerCase();
+        final desc = (tip['desc'] ?? '').toLowerCase();
+        for (var key in possibleImages) {
+          if (!usedImages.contains(key) &&
+              (title.contains(key) || desc.contains(key))) {
+            imageKey = key;
+            usedImages.add(key);
+            break;
+          }
+        }
+        // If no unique image found, assign an unused one if available
+        if (imageKey.isEmpty) {
+          final unused = possibleImages
+              .firstWhere((k) => !usedImages.contains(k), orElse: () => '');
+          if (unused.isNotEmpty) {
+            imageKey = unused;
+            usedImages.add(unused);
+          }
+        }
+        // If still empty, fallback to default
+        if (imageKey.isEmpty) {
+          imageKey = 'default';
+        }
+        tip['imageKey'] = imageKey;
+      }
+      // Translate all tips if needed
       final lang = Localizations.localeOf(context).languageCode;
       if (lang == 'fr' || lang == 'sw') {
         for (var tip in tips) {
@@ -353,12 +367,12 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   // Helper to select tip image based on imageKey
   String _getTipImage(Map<String, String> tip) {
     switch (tip['imageKey']) {
+      case 'rinse':
+        return 'assets/images/rinsing.png';
       case 'floss':
         return 'assets/images/flossing.png';
       case 'brush':
         return 'assets/images/brushing.png';
-      case 'rinse':
-        return 'assets/images/rinsing.png';
       default:
         return 'assets/images/icon_braces_care.png';
     }
@@ -782,7 +796,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 // Today's Tip Card (carousel)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
