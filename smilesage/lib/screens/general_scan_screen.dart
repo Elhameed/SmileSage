@@ -848,6 +848,8 @@ class _GeneralScanScreenState extends State<GeneralScanScreen> {
                   ],
                 ),
               ),
+              // Add extra space after the buttons
+              const SizedBox(height: 24),
             ],
           ],
         ),
