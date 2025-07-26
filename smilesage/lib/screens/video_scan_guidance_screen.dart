@@ -35,13 +35,21 @@ class _VideoScanGuidanceScreenState extends State<VideoScanGuidanceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Color constants matching app theme
+    const navyText = Color(0xFF0A244E);
+    const subtitleText = Color(0xFF3A3A3A);
+    const primaryGreen = Color(0xFF7CF4A4);
+    const lightGrayFill = Color(0xFFE8F4EC);
+    const warmBackground =
+        Color(0xFFE8F4EC); // Warm off-white for subtle warmth
+
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1033),
+      backgroundColor: warmBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: navyText),
           onPressed: () => Navigator.of(context).pop(false),
         ),
       ),
@@ -51,23 +59,42 @@ class _VideoScanGuidanceScreenState extends State<VideoScanGuidanceScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: _isInitialized
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: VideoPlayer(_controller),
-                      )
-                    : Container(
-                        color: Colors.black12,
-                        child: const Center(child: CircularProgressIndicator()),
-                      ),
+              Container(
+                decoration: BoxDecoration(
+                  color: lightGrayFill,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.grey.shade300,
+                    width: 1,
+                  ),
+                ),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: _isInitialized
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: VideoPlayer(_controller),
+                        )
+                      : Container(
+                          decoration: BoxDecoration(
+                            color: lightGrayFill,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFF7CF4A4),
+                              ),
+                            ),
+                          ),
+                        ),
+                ),
               ),
               const SizedBox(height: 32),
-              const Text(
+              Text(
                 'How to record your dental scan',
-                style: TextStyle(
-                  color: Colors.white,
+                style: const TextStyle(
+                  color: navyText,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -86,8 +113,8 @@ class _VideoScanGuidanceScreenState extends State<VideoScanGuidanceScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7CF4A4),
-                    foregroundColor: Colors.black,
+                    backgroundColor: primaryGreen,
+                    foregroundColor: navyText,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -112,12 +139,12 @@ class _VideoScanGuidanceScreenState extends State<VideoScanGuidanceScreen> {
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         children: [
-          Icon(icon, color: Colors.white, size: 28),
+          Icon(icon, color: const Color(0xFF7CF4A4), size: 28),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: const TextStyle(color: Color(0xFF0A244E), fontSize: 16),
             ),
           ),
         ],
