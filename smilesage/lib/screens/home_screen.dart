@@ -18,6 +18,8 @@ import 'package:shimmer/shimmer.dart';
 import 'package:flutter/widgets.dart';
 import 'scan_detail_screen.dart';
 import '../services/profile_service.dart';
+import '../services/leaderboard_service.dart';
+import '../services/auth_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../services/translation_service.dart';
 import 'dart:async';
@@ -136,6 +138,25 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     }
     int streak = _calculateStreak(logs);
     _calculateWeeklyBrushing(logs);
+
+    // Update leaderboard with current streak
+    try {
+      final leaderboardService = LeaderboardService();
+      final authService = AuthService();
+      final user = authService.currentUser;
+
+      if (user != null && streak > 0) {
+        await leaderboardService.updateUserStreak(
+          streak: streak,
+          displayName: user.displayName ?? 'Anonymous User',
+          profileImage: _profileImageBase64,
+        );
+      }
+    } catch (e) {
+      print('Error updating leaderboard: $e');
+      // Don't show error to user, leaderboard update is not critical
+    }
+
     setState(() {
       _brushingStreak = streak;
       _loadingStreak = false;
@@ -570,45 +591,84 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              Row(
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: Text(
-                                      _brushingStreak > 0
-                                          ? AppLocalizations.of(context)!
-                                              .nDayStreak(_brushingStreak)
-                                          : AppLocalizations.of(context)!
-                                              .noStreakYet,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        color: Color(0xFF4CAF50), // green
-                                        fontWeight: FontWeight.w500,
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _brushingStreak > 0
+                                              ? AppLocalizations.of(context)!
+                                                  .nDayStreak(_brushingStreak)
+                                              : AppLocalizations.of(context)!
+                                                  .noStreakYet,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Color(0xFF4CAF50), // green
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                    ],
                                   ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .pushNamed(TipsScreen.routeName);
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Color(0xFF7CF4A4),
-                                      shape: const StadiumBorder(),
-                                      elevation: 0,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 18, vertical: 10),
-                                    ),
-                                    child: Text(
-                                      AppLocalizations.of(context)!
-                                          .trackTodaysBrushing,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.black,
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pushNamed(
+                                                TipsScreen.routeName);
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Color(0xFF7CF4A4),
+                                            shape: const StadiumBorder(),
+                                            elevation: 0,
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 18, vertical: 10),
+                                          ),
+                                          child: Text(
+                                            AppLocalizations.of(context)!
+                                                .trackTodaysBrushing,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.black,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: OutlinedButton(
+                                          onPressed: () {
+                                            Navigator.of(context)
+                                                .pushNamed('/leaderboard');
+                                          },
+                                          style: OutlinedButton.styleFrom(
+                                            side: const BorderSide(
+                                                color: Color(0xFF7CF4A4),
+                                                width: 1.5),
+                                            shape: const StadiumBorder(),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 18, vertical: 10),
+                                          ),
+                                          child: Text(
+                                            AppLocalizations.of(context)!
+                                                .globalLeaderboard,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(0xFF7CF4A4),
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

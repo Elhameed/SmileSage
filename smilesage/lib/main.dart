@@ -16,6 +16,7 @@ import 'screens/learn_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/tips_screen.dart';
 import 'screens/scan_history_screen.dart';
+import 'screens/leaderboard_screen.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:io';
 import 'package:timezone/data/latest.dart' as tz;
@@ -142,6 +143,7 @@ class DentalApp extends StatelessWidget {
         ProfileScreen.routeName: (_) => const ProfileScreen(),
         TipsScreen.routeName: (_) => const TipsScreen(),
         ScanHistoryScreen.routeName: (_) => const ScanHistoryScreen(),
+        LeaderboardScreen.routeName: (_) => const LeaderboardScreen(),
       },
     );
   }

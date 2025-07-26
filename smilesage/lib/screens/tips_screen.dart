@@ -12,6 +12,8 @@ import 'dart:io';
 import 'package:flutter/animation.dart';
 import '../main.dart'; // for routeObserver
 import '../services/profile_service.dart';
+import '../services/leaderboard_service.dart';
+import '../services/auth_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../services/translation_service.dart';
 
@@ -315,6 +317,24 @@ class _TipsScreenState extends State<TipsScreen>
     if (_brushingLogs.isNotEmpty) {
       _lastBrushedDate = _brushingLogs.last.date;
       _currentStreak = _calculateStreak(_brushingLogs);
+    }
+
+    // Update leaderboard with new streak
+    try {
+      final leaderboardService = LeaderboardService();
+      final authService = AuthService();
+      final user = authService.currentUser;
+
+      if (user != null && _currentStreak > 0) {
+        await leaderboardService.updateUserStreak(
+          streak: _currentStreak,
+          displayName: user.displayName ?? 'Anonymous User',
+          profileImage: null, // We can add profile image later if needed
+        );
+      }
+    } catch (e) {
+      print('Error updating leaderboard: $e');
+      // Don't show error to user, leaderboard update is not critical
     }
 
     setState(() {
