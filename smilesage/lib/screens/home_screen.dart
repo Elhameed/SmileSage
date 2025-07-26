@@ -834,7 +834,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                           : Column(
                               children: [
                                 SizedBox(
-                                  height: 185,
+                                  height: 170,
                                   child: PageView.builder(
                                     controller: _tipPageController,
                                     itemCount: _dailyTips.length,
@@ -874,7 +874,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                                       fontSize: 14,
                                                       color: Color(0xFF4CAF50),
                                                     ),
-                                                    maxLines: 3,
+                                                    maxLines: 2,
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                   ),
@@ -1220,7 +1220,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                               ),
                               SizedBox(height: 6),
                               Text(
-                                '${_scansThisMonth} of $_scanGoal scans completed',
+                                '${_scansThisMonth} of $_scanGoal scans taken',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Color(0xFF4CAF50),
