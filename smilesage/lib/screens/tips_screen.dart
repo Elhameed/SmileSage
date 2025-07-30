@@ -546,12 +546,6 @@ class _TipsScreenState extends State<TipsScreen>
             ],
           ),
         const SizedBox(height: 12),
-        if (!_brushedToday && _currentStreak > 0)
-          OutlinedButton.icon(
-            onPressed: clearBrushingLogs,
-            icon: const Icon(Icons.refresh),
-            label: Text(AppLocalizations.of(context)!.resetStreak),
-          ),
       ],
     );
   }
