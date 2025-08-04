@@ -135,7 +135,7 @@ For questions or support, please contact: [a.ajani@alustudent.com]
 
 ---
 
-## 💡 Acknowledgements
+## Acknowledgements
 - Flutter & Dart teams
 - My Supervisor (Mr. Marvin Ogore)
 - Family and Friends that made this project a success
