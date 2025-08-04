@@ -8,8 +8,7 @@
 - [Getting Started](#getting-started)
 - [Project Structure](#project-structure)
 - [ML Model](#ml-model)
-- [Testing](#testing)
-- [Contributing](#contributing)
+- [Acknowledgements](#acknowledgements)
 
 ## Overview
 SmileSage is a cross-platform dental health app designed to help users monitor their oral health, find nearby clinics, learn about dental care, and receive personalized reminders. The app leverages machine learning for dental scan analysis and offers a user-friendly experience on Android mobile platforms.
