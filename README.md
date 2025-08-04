@@ -116,13 +116,6 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 - **Developer**: [a.ajani@alustudent.com](mailto:a.ajani@alustudent.com)
 - **Supervisor**: Mr. Marvin Ogore
 
-## Acknowledgments
-
-- Flutter & Dart development teams
-- Firebase for backend services
-- Google Cloud Platform for ML deployment
-- All contributors and testers who made this project possible
-
 ---
 
 <div align="center">
