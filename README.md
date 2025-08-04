@@ -136,11 +136,6 @@ For questions or support, please contact: [a.ajani@alustudent.com]
 
 ---
 
-## 📄 License
-[]
-
----
-
 ## 💡 Acknowledgements
 - Flutter & Dart teams
 - My Supervisor (Mr. Marvin Ogore)
