@@ -72,7 +72,7 @@ Screenshots demonstrating each feature are located in the [`screenshots/`](scree
 ---
 
 ## 📦 Deployment / Installable Package
-- **APK Link:** https://drive.google.com/file/d/1N9jhGof1yY5mbuBSPIZvfP8wuh7QNzPs/view?usp=sharing
+- **APK Link:** https://drive.google.com/file/d/1z5N-kJNws94nACIZfhEChgYB7Pn38MQq/view?usp=sharing
 - To build your own installable package:
   - **Android APK:** `flutter build apk`
 
